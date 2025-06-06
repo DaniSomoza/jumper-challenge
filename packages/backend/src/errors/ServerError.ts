@@ -1,28 +1,28 @@
-export type ErrorDetails = Record<string, any>;
+export type ErrorDetails = Record<string, string | number | boolean | string[] | undefined | object>
 
 export type BodyErrorResponse = {
-  error: string;
-  details: ErrorDetails;
-};
+  error: string
+  details: ErrorDetails
+}
 
 class ServerError extends Error {
-  details: ErrorDetails;
-  code: number;
+  details: ErrorDetails
+  code: number
 
-  constructor(message: string, details: ErrorDetails = {}, code: number) {
-    super(message);
+  constructor(message: string, code: number, details: ErrorDetails = {}) {
+    super(message)
 
-    this.name = "ServerError";
-    this.details = details;
-    this.code = code;
+    this.name = 'ServerError'
+    this.details = details
+    this.code = code
   }
 
   toBodyResponse(): BodyErrorResponse {
     return {
       error: this.message,
-      details: this.details,
-    };
+      details: this.details
+    }
   }
 }
 
-export default ServerError;
+export default ServerError

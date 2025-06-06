@@ -1,113 +1,94 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type JSX,
-} from "react";
-import { useAccount } from "wagmi";
+import { createContext, useCallback, useContext, useEffect, useState, type JSX } from 'react'
+import { useAccount } from 'wagmi'
 
-import Api from "../api/Api";
-import authEndpoints from "../api/authEndpoints";
-import useSiweAuth from "../hooks/useSiweAuth";
+import Api from '../api/Api'
+import authEndpoints from '../api/authEndpoints'
+import useSiweAuth from '../hooks/useSiweAuth'
 
 const initialContextValue = {
-  sessionToken: "",
-  address: "",
+  sessionToken: '',
+  address: '',
   isAuthenticated: false,
-  signIn: () => Promise.resolve(""),
-};
+  signIn: () => Promise.resolve('')
+}
 
 type authorizationContextValue = {
-  sessionToken: string;
-  address?: string;
-  isAuthenticated: boolean;
-  signIn: () => Promise<string>;
-};
+  sessionToken: string
+  address?: string
+  isAuthenticated: boolean
+  signIn: () => Promise<string>
+}
 
-const authorizationContext =
-  createContext<authorizationContextValue>(initialContextValue);
+const authorizationContext = createContext<authorizationContextValue>(initialContextValue)
 
 function useAuthorization() {
-  const context = useContext(authorizationContext);
+  const context = useContext(authorizationContext)
 
   if (!context) {
-    throw new Error(
-      "useAuthorization should be within AuthorizationContext Provider"
-    );
+    throw new Error('useAuthorization should be within AuthorizationContext Provider')
   }
 
-  return context;
+  return context
 }
 
 type AuthorizationProviderProps = {
-  children: JSX.Element | JSX.Element[];
-};
+  children: JSX.Element | JSX.Element[]
+}
 
 function AuthorizationProvider({ children }: AuthorizationProviderProps) {
   // const [sessionToken, setSessionToken] = useLocalStorageState(SESSION_TOKEN_STORAGE_KEY, '')
-  const [sessionToken, setSessionToken] = useState("");
+  const [sessionToken, setSessionToken] = useState('')
 
-  const account = useAccount();
+  const account = useAccount()
 
-  const { signSiweMessage } = useSiweAuth();
+  const { signSiweMessage } = useSiweAuth()
 
-  const { address = "", chainId } = account;
-  const isAuthenticated = !!sessionToken;
+  const { address = '', chainId } = account
+  const isAuthenticated = !!sessionToken
 
   // TODO: implement expire session and logout properly
 
   useEffect(() => {
     // logout
-    setSessionToken("");
-  }, [address]);
+    setSessionToken('')
+  }, [address])
 
   useEffect(() => {
-    Api.setSessionToken(sessionToken);
-  }, [sessionToken]);
+    Api.setSessionToken(sessionToken)
+  }, [sessionToken])
 
   const signIn = useCallback(async () => {
     if (!address || !chainId) {
-      throw "TODO: implement frontend side errors!";
+      throw 'TODO: implement frontend side errors!'
     }
 
-    const getNonceApiResponse = await authEndpoints.getNonce(address);
+    const getNonceApiResponse = await authEndpoints.getNonce(address)
 
-    const { nonce, nonceSigned } = getNonceApiResponse.data;
+    const { nonce, nonceSigned } = getNonceApiResponse.data
 
-    const { signature, siweMessage, message } = await signSiweMessage(
-      address,
-      nonce,
-      chainId
-    );
+    const { signature, siweMessage } = await signSiweMessage(address, nonce, chainId)
 
     const signInApiResponse = await authEndpoints.signIn({
       siweMessageData: siweMessage,
-      message,
       signature,
-      nonceSigned,
-    });
+      nonceSigned
+    })
 
-    const { sessionToken } = signInApiResponse.data;
+    const { sessionToken } = signInApiResponse.data
 
-    setSessionToken(sessionToken);
+    setSessionToken(sessionToken)
 
-    return sessionToken;
-  }, [address, signSiweMessage, chainId]);
+    return sessionToken
+  }, [address, signSiweMessage, chainId])
 
   const value = {
     sessionToken,
     isAuthenticated,
     address,
-    signIn,
-  };
+    signIn
+  }
 
-  return (
-    <authorizationContext.Provider value={value}>
-      {children}
-    </authorizationContext.Provider>
-  );
+  return <authorizationContext.Provider value={value}>{children}</authorizationContext.Provider>
 }
 
-export { useAuthorization, AuthorizationProvider };
+export { useAuthorization, AuthorizationProvider }

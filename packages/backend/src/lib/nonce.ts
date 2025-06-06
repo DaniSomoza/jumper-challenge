@@ -1,5 +1,5 @@
-import { generateNonce } from "siwe";
+import { generateNonce } from 'siwe'
 
 export const createNonce = () => {
-  return generateNonce();
-};
+  return generateNonce()
+}

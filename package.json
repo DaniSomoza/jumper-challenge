@@ -6,11 +6,25 @@
   "repository": "git@github.com:DaniSomoza/jumper-challenge.git",
   "author": "Daniel Somoza <dasomoza@gmail.com>",
   "license": "MIT",
-    "workspaces": [
+  "scripts": {
+    "test": "yarn workspaces run test",
+    "build": "yarn workspaces run build",
+    "lint:check": "eslint \"packages/**/*.{ts,tsx}\" && prettier --check \"packages/**/*.{ts,tsx}\""
+  },
+  "workspaces": [
     "packages/frontend",
     "packages/backend"
   ],
   "dependencies": {
     "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.6.0",
+    "@typescript-eslint/parser": "^8.6.0",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3"
   }
 }

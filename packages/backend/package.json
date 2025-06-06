@@ -5,7 +5,10 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "ts-node-dev src/index.ts"
+    "dev": "ts-node-dev src/index.ts",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@fastify/cors": "^11.0.1",
@@ -17,9 +20,12 @@
     "siwe": "^3.0.0"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "@types/joi": "^17.2.3",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.15.29",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.3.4",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3"
   }
