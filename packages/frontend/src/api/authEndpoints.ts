@@ -1,54 +1,49 @@
-import type { SiweMessage } from "siwe";
-import { type AxiosResponse } from "axios";
+import type { SiweMessage } from 'siwe'
+import { type AxiosResponse } from 'axios'
 
-import Api from "./Api";
+import Api from './Api'
 
-const backendOrigin = import.meta.env.VITE_BACKEND_ORIGIN;
+const backendOrigin = import.meta.env.VITE_BACKEND_ORIGIN
 
 type nonceResponse = {
-  address: string;
-  nonce: string;
-  nonceSigned: string;
-};
-
-export async function getNonce(
   address: string
-): Promise<AxiosResponse<nonceResponse>> {
-  const getNonceEnpoint = `${backendOrigin}/auth/nonce/${address}`;
+  nonce: string
+  nonceSigned: string
+}
 
-  return await Api.get<nonceResponse>(getNonceEnpoint);
+export async function getNonce(address: string): Promise<AxiosResponse<nonceResponse>> {
+  const getNonceEnpoint = `${backendOrigin}/auth/nonce/${address}`
+
+  return await Api.get<nonceResponse>(getNonceEnpoint)
 }
 
 export type signInBodyData = {
-  siweMessageData: Partial<SiweMessage>;
-  message: string;
-  signature: string;
-  nonceSigned: string;
-};
+  siweMessageData: Partial<SiweMessage>
+  message: string
+  signature: string
+  nonceSigned: string
+}
 
 type sessionResponse = {
-  sessionToken: string;
-};
+  sessionToken: string
+}
 
 export async function signIn({
   siweMessageData,
   message,
   signature,
-  nonceSigned,
+  nonceSigned
 }: signInBodyData): Promise<AxiosResponse<sessionResponse>> {
-  const signInEndpoint = `${backendOrigin}/auth/session`;
+  const signInEndpoint = `${backendOrigin}/auth/session`
 
-  const payload = { siweMessageData, message, signature, nonceSigned };
+  const payload = { siweMessageData, message, signature, nonceSigned }
 
-  return await Api.post<sessionResponse, typeof payload>(
-    signInEndpoint,
-    payload
-  );
+  return await Api.post<sessionResponse, typeof payload>(signInEndpoint, payload)
 }
 
 const authEndpoints = {
   getNonce,
-  signIn,
-};
+  signIn
+}
 
-export default authEndpoints;
+export default authEndpoints

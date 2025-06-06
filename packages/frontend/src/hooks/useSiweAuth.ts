@@ -1,9 +1,9 @@
-import { useCallback } from "react";
-import { useSignMessage } from "wagmi";
-import { SiweMessage } from "siwe";
+import { useCallback } from 'react'
+import { useSignMessage } from 'wagmi'
+import { SiweMessage } from 'siwe'
 
 function useSiweAuth() {
-  const { signMessage } = useSignMessage();
+  const { signMessage } = useSignMessage()
 
   const signSiweMessage = useCallback(
     async (address: string, nonce: string, chainId: number) => {
@@ -11,15 +11,15 @@ function useSiweAuth() {
       const siweMessage = new SiweMessage({
         domain: window.location.host,
         address,
-        statement: "Sign in to Jumper Code Challenge.",
+        statement: 'Sign in to Jumper Code Challenge.',
         uri: window.location.origin,
-        version: "1",
+        version: '1',
         chainId: chainId,
         nonce,
-        issuedAt: new Date().toISOString(),
-      });
+        issuedAt: new Date().toISOString()
+      })
 
-      const message = siweMessage.prepareMessage();
+      const message = siweMessage.prepareMessage()
 
       // Adaptation of the callback-based signMessage API into a modern Promise-based interface to allow using async/await cleanly
       function signMessageAsync() {
@@ -28,22 +28,22 @@ function useSiweAuth() {
             { message },
             {
               onSuccess: resolve,
-              onError: reject,
+              onError: reject
             }
-          );
-        });
+          )
+        })
       }
 
-      const signature = await signMessageAsync();
+      const signature = await signMessageAsync()
 
-      return { signature, siweMessage, message };
+      return { signature, siweMessage, message }
     },
     [signMessage]
-  );
+  )
 
   return {
-    signSiweMessage,
-  };
+    signSiweMessage
+  }
 }
 
-export default useSiweAuth;
+export default useSiweAuth
