@@ -19,7 +19,6 @@ export async function getNonce(address: string): Promise<AxiosResponse<nonceResp
 
 export type signInBodyData = {
   siweMessageData: Partial<SiweMessage>
-  message: string
   signature: string
   nonceSigned: string
 }
@@ -30,13 +29,12 @@ type sessionResponse = {
 
 export async function signIn({
   siweMessageData,
-  message,
   signature,
   nonceSigned
 }: signInBodyData): Promise<AxiosResponse<sessionResponse>> {
   const signInEndpoint = `${backendOrigin}/auth/session`
 
-  const payload = { siweMessageData, message, signature, nonceSigned }
+  const payload = { siweMessageData, signature, nonceSigned }
 
   return await Api.post<sessionResponse, typeof payload>(signInEndpoint, payload)
 }

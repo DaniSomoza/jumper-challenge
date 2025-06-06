@@ -2,10 +2,10 @@ import { StatusCodes } from 'http-status-codes'
 
 import ServerError, { ErrorDetails } from './ServerError'
 
-class UnauthorizedError extends ServerError {
+class BadRequestError extends ServerError {
   constructor(message: string, details?: ErrorDetails) {
-    super(message, StatusCodes.UNAUTHORIZED, details)
+    super(message, StatusCodes.BAD_REQUEST, details)
   }
 }
 
-export default UnauthorizedError
+export default BadRequestError

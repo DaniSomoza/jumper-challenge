@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import StatusCodes from 'http-status-codes'
 
-import authService from './authService'
+import authService, { SiweMessageData } from './authService'
 import handleErrorResponse from '../../errors/handleError'
 import { SiweMessage } from 'siwe'
 
@@ -26,19 +26,17 @@ async function getNonce(request: FastifyRequest, response: FastifyReply) {
 }
 
 export type signInBodyData = {
-  siweMessageData: Partial<SiweMessage>
-  message: string
+  siweMessageData: SiweMessageData
   signature: string
   nonceSigned: string
 }
 
 async function signIn(request: FastifyRequest, response: FastifyReply) {
   try {
-    const { siweMessageData, message, signature, nonceSigned } = request.body as signInBodyData
+    const { siweMessageData, signature, nonceSigned } = request.body as signInBodyData
 
     const { sessionToken } = await authService.signIn({
       siweMessageData,
-      message,
       signature,
       nonceSigned
     })

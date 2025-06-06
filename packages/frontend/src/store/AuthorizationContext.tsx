@@ -66,11 +66,10 @@ function AuthorizationProvider({ children }: AuthorizationProviderProps) {
 
     const { nonce, nonceSigned } = getNonceApiResponse.data
 
-    const { signature, siweMessage, message } = await signSiweMessage(address, nonce, chainId)
+    const { signature, siweMessage } = await signSiweMessage(address, nonce, chainId)
 
     const signInApiResponse = await authEndpoints.signIn({
       siweMessageData: siweMessage,
-      message,
       signature,
       nonceSigned
     })

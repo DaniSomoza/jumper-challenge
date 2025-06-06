@@ -36,7 +36,7 @@ function useSiweAuth() {
 
       const signature = await signMessageAsync()
 
-      return { signature, siweMessage, message }
+      return { signature, siweMessage }
     },
     [signMessage]
   )

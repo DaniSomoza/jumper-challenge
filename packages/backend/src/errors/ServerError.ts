@@ -1,4 +1,4 @@
-export type ErrorDetails = Record<string, string>
+export type ErrorDetails = Record<string, string | number | boolean | string[] | undefined | {}>
 
 export type BodyErrorResponse = {
   error: string
@@ -9,7 +9,7 @@ class ServerError extends Error {
   details: ErrorDetails
   code: number
 
-  constructor(message: string, details: ErrorDetails = {}, code: number) {
+  constructor(message: string, code: number, details: ErrorDetails = {}) {
     super(message)
 
     this.name = 'ServerError'
