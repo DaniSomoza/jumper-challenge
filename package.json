@@ -1,0 +1,16 @@
+{
+  "name": "jumper-challenge",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "repository": "git@github.com:DaniSomoza/jumper-challenge.git",
+  "author": "Daniel Somoza <dasomoza@gmail.com>",
+  "license": "MIT",
+    "workspaces": [
+    "packages/frontend",
+    "packages/backend"
+  ],
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

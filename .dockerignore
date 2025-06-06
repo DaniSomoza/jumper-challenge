@@ -1,0 +1,7 @@
+node_modules
+**/node_modules
+.yarn/cache
+.pnpm-store
+dist
+build
+.git
