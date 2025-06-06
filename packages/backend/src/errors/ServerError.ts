@@ -1,4 +1,4 @@
-export type ErrorDetails = Record<string, string | number | boolean | string[] | undefined | {}>
+export type ErrorDetails = Record<string, string | number | boolean | string[] | undefined | object>
 
 export type BodyErrorResponse = {
   error: string

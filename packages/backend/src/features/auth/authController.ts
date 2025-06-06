@@ -3,7 +3,6 @@ import StatusCodes from 'http-status-codes'
 
 import authService, { SiweMessageData } from './authService'
 import handleErrorResponse from '../../errors/handleError'
-import { SiweMessage } from 'siwe'
 
 async function getNonce(request: FastifyRequest, response: FastifyReply) {
   try {
