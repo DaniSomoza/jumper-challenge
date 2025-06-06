@@ -14,9 +14,7 @@ function handleErrorResponse(error: unknown): ErrorResponse {
     }
   }
 
-  const internalServerError = new InternalServerError('Internal Server Error', {
-    error
-  })
+  const internalServerError = new InternalServerError('Internal Server Error', {})
 
   return {
     code: internalServerError.code,
