@@ -22,7 +22,7 @@ describe('auth', () => {
         url: `/auth/nonce/${address}`
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(createNonceMock).not.toHaveBeenCalled()
 
@@ -52,7 +52,7 @@ describe('auth', () => {
         url: `/auth/nonce/${address}`
       })
 
-      const { address: returnedAddress, nonce, nonceSigned } = JSON.parse(response.body)
+      const { address: returnedAddress, nonce, nonceSigned } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.OK)
 
@@ -95,7 +95,7 @@ describe('auth', () => {
         }
       })
 
-      const { sessionToken } = JSON.parse(response.body)
+      const { sessionToken } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.OK)
       expect(sessionToken).toEqual(mockedSessionToken)
@@ -117,7 +117,7 @@ describe('auth', () => {
         }
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
 
@@ -150,7 +150,7 @@ describe('auth', () => {
         }
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
       expect(error).toEqual('Invalid signature')
@@ -181,7 +181,7 @@ describe('auth', () => {
         }
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
       expect(error).toEqual('Invalid nonce')
@@ -220,7 +220,7 @@ describe('auth', () => {
         }
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
       expect(error).toEqual('Invalid address')
@@ -263,7 +263,7 @@ describe('auth', () => {
         }
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
       expect(error).toEqual('Invalid nonce')
@@ -284,7 +284,7 @@ describe('auth', () => {
         }
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 
@@ -304,7 +304,7 @@ describe('auth', () => {
         }
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 
@@ -331,7 +331,7 @@ describe('auth', () => {
           }
         })
 
-        const { error, details } = JSON.parse(response.body)
+        const { error, details } = JSON.parse(response.payload)
 
         expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 
@@ -357,7 +357,7 @@ describe('auth', () => {
           }
         })
 
-        const { error, details } = JSON.parse(response.body)
+        const { error, details } = JSON.parse(response.payload)
 
         expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 
@@ -381,7 +381,7 @@ describe('auth', () => {
           }
         })
 
-        const { error, details } = JSON.parse(response.body)
+        const { error, details } = JSON.parse(response.payload)
 
         expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 
@@ -405,7 +405,7 @@ describe('auth', () => {
           }
         })
 
-        const { error, details } = JSON.parse(response.body)
+        const { error, details } = JSON.parse(response.payload)
 
         expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 
@@ -429,7 +429,7 @@ describe('auth', () => {
           }
         })
 
-        const { error, details } = JSON.parse(response.body)
+        const { error, details } = JSON.parse(response.payload)
 
         expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 

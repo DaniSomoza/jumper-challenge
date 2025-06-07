@@ -69,7 +69,7 @@ describe('balances', () => {
 
       expect(response.statusCode).toEqual(StatusCodes.OK)
 
-      const body = JSON.parse(response.body)
+      const body = JSON.parse(response.payload)
 
       expect(body.address).toEqual(address)
       expect(body.chainId).toEqual(sepolia.chainId)
@@ -116,7 +116,7 @@ describe('balances', () => {
       expect(spyGetBalancesFromAlchemy).toHaveBeenCalledWith(address, sepolia)
       expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
 
-      const body = JSON.parse(response.body)
+      const body = JSON.parse(response.payload)
 
       expect(body.address).toEqual(address)
       expect(body.chainId).toEqual(sepolia.chainId)
@@ -159,7 +159,7 @@ describe('balances', () => {
 
       expect(response.statusCode).toEqual(StatusCodes.BAD_GATEWAY)
 
-      const { error } = JSON.parse(response.body)
+      const { error } = JSON.parse(response.payload)
 
       expect(error).toEqual('all providers (alchemy and moralis) failed')
     })
@@ -185,7 +185,7 @@ describe('balances', () => {
       expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
       expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(error).toEqual('Invalid session')
       expect(details.sessionToken).toEqual('invalidSessionToken')
@@ -211,7 +211,7 @@ describe('balances', () => {
       expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
       expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(error).toEqual('Invalid address')
       expect(details.address).toEqual(address)
@@ -235,7 +235,7 @@ describe('balances', () => {
       expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
       expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
 
-      const { error } = JSON.parse(response.body)
+      const { error } = JSON.parse(response.payload)
 
       expect(error).toEqual('Missing address')
     })
@@ -261,7 +261,7 @@ describe('balances', () => {
       expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
       expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(error).toEqual('Invalid chainId')
       expect(details.chainId).toEqual(chainId)
@@ -287,7 +287,7 @@ describe('balances', () => {
       expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
       expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
 
-      const { error } = JSON.parse(response.body)
+      const { error } = JSON.parse(response.payload)
 
       expect(error).toEqual('Missing chainId')
     })
