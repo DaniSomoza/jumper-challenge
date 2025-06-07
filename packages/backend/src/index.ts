@@ -1,10 +1,10 @@
 import Server from './server/Server'
-import authRoutes from './routes/authRoutes'
+import routes from './routes/routes'
 import { BACKEND_PORT, FRONTEND_ORIGINS, HOST } from './constants'
 
 const service = new Server({ logger: true })
 
 service.configureCors(FRONTEND_ORIGINS)
-service.addRoutes(authRoutes)
+service.addRoutes(routes)
 
 service.start(HOST, BACKEND_PORT)

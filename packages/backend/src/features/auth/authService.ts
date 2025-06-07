@@ -1,15 +1,15 @@
 import { SiweMessage } from 'siwe'
+import { isAddress } from 'ethers'
+import { TokenExpiredError } from 'jsonwebtoken'
 
 import { createJWT, verifyJWT } from '../../lib/jwt'
 import { createNonce } from '../../lib/nonce'
 import { NONCE_EXPIRATION_TIME, SESSION_EXPIRATION_TIME } from '../../constants'
 import UnauthorizedError from '../../errors/UnauthorizedError'
-import { isAddress } from 'ethers'
 import BadRequestError from '../../errors/BadRequestError'
-import { TokenExpiredError } from 'jsonwebtoken'
 
 type jwtNoncePayload = { nonce: string; address: string; jwtType: 'nonce' }
-type jwtSessionPayload = { address: string; jwtType: 'session' }
+type jwtSessionPayload = { address: string; chainId: string; jwtType: 'session' }
 
 async function getNonce(address: string) {
   if (!isAddress(address)) {
@@ -76,7 +76,11 @@ async function signIn({ siweMessageData, signature, nonceSigned }: signInData) {
     })
   }
 
-  const jwtSessionPayload: jwtSessionPayload = { address, jwtType: 'session' }
+  const jwtSessionPayload: jwtSessionPayload = {
+    address,
+    chainId: siweMessageData.chainId.toString(),
+    jwtType: 'session'
+  }
   const sessionToken = createJWT(jwtSessionPayload, SESSION_EXPIRATION_TIME)
 
   return {
@@ -84,22 +88,17 @@ async function signIn({ siweMessageData, signature, nonceSigned }: signInData) {
   }
 }
 
-type sessionData = {
-  sessionToken: string
-  address: string
-}
-
-function verifySession({ sessionToken, address }: sessionData) {
+function verifySession(sessionToken: string) {
   try {
     const jwtSessionPayload = verifyJWT<jwtSessionPayload>(sessionToken)
 
-    if (address !== jwtSessionPayload.address && jwtSessionPayload.jwtType !== 'session') {
-      throw new UnauthorizedError('Invalid session', { sessionToken, address })
+    if (jwtSessionPayload.jwtType !== 'session') {
+      throw new UnauthorizedError('Invalid session', { sessionToken })
     }
 
     return jwtSessionPayload
   } catch {
-    throw new UnauthorizedError('Invalid session', { sessionToken, address })
+    throw new UnauthorizedError('Invalid session', { sessionToken })
   }
 }
 
