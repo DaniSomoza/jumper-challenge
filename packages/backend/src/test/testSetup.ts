@@ -25,7 +25,7 @@ afterAll(async () => {
 beforeAll(() => {
   jest.spyOn(axios, 'post').mockImplementation((url) => {
     if (url.includes('alchemy')) {
-      return Promise.resolve(ALCHEMY_RESPONSE_MOCK)
+      return Promise.resolve({ data: ALCHEMY_RESPONSE_MOCK })
     }
 
     return Promise.reject(new Error('Unknown provider url'))
@@ -33,7 +33,7 @@ beforeAll(() => {
 
   jest.spyOn(axios, 'get').mockImplementation((url) => {
     if (url.includes('moralis')) {
-      return Promise.resolve(MORALIS_RESPONSE_MOCK)
+      return Promise.resolve({ data: MORALIS_RESPONSE_MOCK })
     }
 
     return Promise.reject(new Error('Unknown provider url'))

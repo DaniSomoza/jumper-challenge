@@ -104,7 +104,7 @@ describe('auth', () => {
       createJWTMock.mockRestore()
     })
 
-    it('should return 401 Unauthorized Error Request when provided nonce is expired', async () => {
+    it('should return 401 Unauthorized when nonce is expired', async () => {
       const { siweMessageData, signature, nonceSigned } = createTestSiweMessagePayload()
 
       const response = await testServer.server.inject({
