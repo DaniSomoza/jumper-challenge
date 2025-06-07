@@ -1,10 +1,10 @@
 import axios from 'axios'
 
 import { Chain } from '../../../chains/chains'
-import { morallisApiKey } from '../../../constants'
+import { moralisApiKey } from '../../../constants'
 import { BalanceProvider, Balances, ERC20TokenBalance } from '../BalancesTypes'
 
-type MorallisBalances = {
+type MoralisBalances = {
   token_address: string
   symbol: string
   name: string
@@ -20,27 +20,27 @@ type MorallisBalances = {
   security_score: string | null
 }[]
 
-const morallisProvider: BalanceProvider = {
-  name: 'Morallis',
+const moralisProvider: BalanceProvider = {
+  name: 'Moralis',
   logo: 'https://moralis.com/_next/static/media/MoralisMoneyLogomark.968154c8.svg',
   decription:
     'Seamlessly access rich blockchain data and integrate NFTs, ERC20 tokens, DeFi protocols, transaction history, and more into your dapps.'
 }
 
-export async function getBalancesFromMorallis(address: string, chain: Chain): Promise<Balances> {
+export async function getBalancesFromMoralis(address: string, chain: Chain): Promise<Balances> {
   const url = ` https://deep-index.moralis.io/api/v2.2/${address}/erc20?chain=0x${chain.chainId.toString(16)}`
 
   const headers = {
     'Content-Type': 'application/json',
-    'X-API-Key': morallisApiKey
+    'X-API-Key': moralisApiKey
   }
 
   const response = await axios.get(url, { headers })
 
-  const morallisBalances = response.data as MorallisBalances
+  const moralisBalances = response.data as MoralisBalances
 
-  // parsing from Morallis schema to our Balances Schema
-  const tokens: ERC20TokenBalance[] = morallisBalances.map((tokenBalance) => ({
+  // parsing from Moralis schema to our Balances Schema
+  const tokens: ERC20TokenBalance[] = moralisBalances.map((tokenBalance) => ({
     address: tokenBalance.token_address,
     balance: tokenBalance.balance,
     name: tokenBalance.name,
@@ -48,13 +48,13 @@ export async function getBalancesFromMorallis(address: string, chain: Chain): Pr
     symbol: tokenBalance.symbol,
     decimals: tokenBalance.decimals,
     isSpamToken: tokenBalance.possible_spam
-    // no price available in the Morallis API
+    // no price available in the Moralis API
   }))
 
   return {
     address,
     chainId: chain.chainId,
     tokens,
-    provider: morallisProvider
+    provider: moralisProvider
   }
 }

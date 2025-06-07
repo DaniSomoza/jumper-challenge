@@ -15,4 +15,4 @@ export const FRONTEND_ORIGINS =
 export const HOST = '0.0.0.0'
 
 export const alchemyApiKey = process.env.ALCHEMY_API_KEY || ''
-export const morallisApiKey = process.env.MORALLIS_API_KEY || ''
+export const moralisApiKey = process.env.MORALIS_API_KEY || ''

@@ -4,7 +4,7 @@ import authService from '../auth/authService'
 import BadRequestError from '../../errors/BadRequestError'
 import chains from '../../chains/chains'
 import { getBalancesFromAlchemy } from './api-providers/alchemy'
-import { getBalancesFromMorallis } from './api-providers/morallis'
+import { getBalancesFromMoralis } from './api-providers/moralis'
 import BadGatewayError from '../../errors/BadGatewayError'
 
 async function getBalances(sessionToken?: string, customAddress?: string, customChainId?: string) {
@@ -45,12 +45,12 @@ async function getBalances(sessionToken?: string, customAddress?: string, custom
     return balances
   } catch {
     try {
-      // Morallis API as a fallback
-      const balances = await getBalancesFromMorallis(address, chain)
+      // Moralis API as a fallback
+      const balances = await getBalancesFromMoralis(address, chain)
 
       return balances
     } catch {
-      throw new BadGatewayError('all providers (alchemy and morallis) failed')
+      throw new BadGatewayError('all providers (alchemy and moralis) failed')
     }
   }
 }
