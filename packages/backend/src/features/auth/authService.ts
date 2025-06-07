@@ -88,7 +88,7 @@ async function signIn({ siweMessageData, signature, nonceSigned }: signInData) {
   }
 }
 
-function verifySession(sessionToken: string) {
+function verifySession(sessionToken: string): jwtSessionPayload {
   try {
     const jwtSessionPayload = verifyJWT<jwtSessionPayload>(sessionToken)
 
