@@ -31,14 +31,9 @@ describe('balances', () => {
 
       const body = JSON.parse(response.body)
 
-      expect(body).toMatchObject({
-        address,
-        chainId: sepolia.chainId,
-        tokens: expect.any(Array),
-        provider: expect.objectContaining({
-          name: 'Alchemy'
-        })
-      })
+      expect(body.address).toEqual(address)
+      expect(body.chainId).toEqual(sepolia.chainId)
+      expect(body.provider.name).toEqual('Alchemy')
 
       const tokens = body.tokens as ERC20TokenBalance[]
 
@@ -76,14 +71,9 @@ describe('balances', () => {
 
       const body = JSON.parse(response.body)
 
-      expect(body).toMatchObject({
-        address,
-        chainId: sepolia.chainId,
-        tokens: expect.any(Array),
-        provider: expect.objectContaining({
-          name: 'Moralis'
-        })
-      })
+      expect(body.address).toEqual(address)
+      expect(body.chainId).toEqual(sepolia.chainId)
+      expect(body.provider.name).toEqual('Moralis')
 
       const tokens = body.tokens as ERC20TokenBalance[]
 
@@ -128,14 +118,9 @@ describe('balances', () => {
 
       const body = JSON.parse(response.body)
 
-      expect(body).toMatchObject({
-        address,
-        chainId: sepolia.chainId,
-        tokens: expect.any(Array),
-        provider: expect.objectContaining({
-          name: 'Alchemy'
-        })
-      })
+      expect(body.address).toEqual(address)
+      expect(body.chainId).toEqual(sepolia.chainId)
+      expect(body.provider.name).toEqual('Alchemy')
 
       const tokens = body.tokens as ERC20TokenBalance[]
 
@@ -316,14 +301,9 @@ describe('balances', () => {
         const balances = await alchemyProvider.getBalancesFromAlchemy(address, sepolia)
 
         // basic Balances schema
-        expect(balances).toMatchObject({
-          address,
-          chainId: sepolia.chainId,
-          tokens: expect.any(Array),
-          provider: expect.objectContaining({
-            name: 'Alchemy'
-          })
-        })
+        expect(balances.address).toEqual(address)
+        expect(balances.chainId).toEqual(sepolia.chainId)
+        expect(balances.provider.name).toEqual('Alchemy')
 
         // all tokens are ERC20 tokens (native token removed)
         expect(balances.tokens.every(({ address }) => !!address)).toBe(true)
@@ -348,14 +328,9 @@ describe('balances', () => {
         const balances = await moralisProvider.getBalancesFromMoralis(address, sepolia)
 
         // basic Balances schema
-        expect(balances).toMatchObject({
-          address,
-          chainId: sepolia.chainId,
-          tokens: expect.any(Array),
-          provider: expect.objectContaining({
-            name: 'Moralis'
-          })
-        })
+        expect(balances.address).toEqual(address)
+        expect(balances.chainId).toEqual(sepolia.chainId)
+        expect(balances.provider.name).toEqual('Moralis')
 
         // all tokens are ERC20 tokens (native token removed)
         expect(balances.tokens.every(({ address }) => !!address)).toBe(true)
