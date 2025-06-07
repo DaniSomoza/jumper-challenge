@@ -62,7 +62,12 @@ export async function getBalancesFromAlchemy(address: string, chain: Chain): Pro
       logo: tokenBalance.tokenMetadata.logo || '',
       symbol: tokenBalance.tokenMetadata.symbol || '',
       decimals: tokenBalance.tokenMetadata.decimals || 0,
-      isSpamToken: false
+      isSpamToken: false,
+      price: {
+        currency: tokenBalance.tokenPrices[0]?.currency,
+        value: tokenBalance.tokenPrices[0]?.value,
+        updatedAt: tokenBalance.tokenPrices[0]?.lastUpdatedAt
+      }
     }))
     .filter(({ address, balance }) => !!address && balance !== '0') // remove native token and 0 balances
 

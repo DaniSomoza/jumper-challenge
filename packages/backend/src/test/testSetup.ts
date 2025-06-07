@@ -12,17 +12,7 @@ testServer.configureCors(['http://localhost:3000'])
 
 beforeEach(() => {
   jest.restoreAllMocks()
-})
 
-afterEach(() => {
-  jest.restoreAllMocks()
-})
-
-afterAll(async () => {
-  await testServer.server.close()
-})
-
-beforeAll(() => {
   jest.spyOn(axios, 'post').mockImplementation((url) => {
     if (url.includes('alchemy')) {
       return Promise.resolve({ data: ALCHEMY_RESPONSE_MOCK })
@@ -38,4 +28,12 @@ beforeAll(() => {
 
     return Promise.reject(new Error('Unknown provider url'))
   })
+})
+
+afterEach(() => {
+  jest.restoreAllMocks()
+})
+
+afterAll(async () => {
+  await testServer.server.close()
 })

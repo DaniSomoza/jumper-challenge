@@ -29,7 +29,7 @@ describe('balances', () => {
 
       expect(response.statusCode).toEqual(StatusCodes.OK)
 
-      const body = JSON.parse(response.body)
+      const body = JSON.parse(response.payload)
 
       expect(body.address).toEqual(address)
       expect(body.chainId).toEqual(sepolia.chainId)
