@@ -3,16 +3,12 @@ import { StatusCodes } from 'http-status-codes'
 import { testServer } from './testSetup'
 import * as createNonceLib from '../lib/nonce'
 import * as creatJWTLib from '../lib/jwt'
+import { mainnet, sepolia } from '../chains/chains'
+import { SESSION_EXPIRATION_TIME } from '../constants'
+import authService from '../features/auth/authService'
+import UnauthorizedError from '../errors/UnauthorizedError'
 
 describe('auth', () => {
-  beforeEach(() => {
-    jest.restoreAllMocks()
-  })
-
-  afterEach(() => {
-    jest.restoreAllMocks()
-  })
-
   describe('getNonce endpoint', () => {
     it('should return 400 Bad Request when provided address is not a valid Ethereum address', async () => {
       const address = 'invalid_address'
@@ -26,7 +22,7 @@ describe('auth', () => {
         url: `/auth/nonce/${address}`
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(createNonceMock).not.toHaveBeenCalled()
 
@@ -56,7 +52,7 @@ describe('auth', () => {
         url: `/auth/nonce/${address}`
       })
 
-      const { address: returnedAddress, nonce, nonceSigned } = JSON.parse(response.body)
+      const { address: returnedAddress, nonce, nonceSigned } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.OK)
 
@@ -99,7 +95,7 @@ describe('auth', () => {
         }
       })
 
-      const { sessionToken } = JSON.parse(response.body)
+      const { sessionToken } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.OK)
       expect(sessionToken).toEqual(mockedSessionToken)
@@ -108,7 +104,7 @@ describe('auth', () => {
       createJWTMock.mockRestore()
     })
 
-    it('should return 401 Unauthorized Error Request when provided nonce is expired', async () => {
+    it('should return 401 Unauthorized when nonce is expired', async () => {
       const { siweMessageData, signature, nonceSigned } = createTestSiweMessagePayload()
 
       const response = await testServer.server.inject({
@@ -121,7 +117,7 @@ describe('auth', () => {
         }
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
 
@@ -154,7 +150,7 @@ describe('auth', () => {
         }
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
       expect(error).toEqual('Invalid signature')
@@ -185,7 +181,7 @@ describe('auth', () => {
         }
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
       expect(error).toEqual('Invalid nonce')
@@ -224,7 +220,7 @@ describe('auth', () => {
         }
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
       expect(error).toEqual('Invalid address')
@@ -267,7 +263,7 @@ describe('auth', () => {
         }
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
       expect(error).toEqual('Invalid nonce')
@@ -288,7 +284,7 @@ describe('auth', () => {
         }
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 
@@ -308,7 +304,7 @@ describe('auth', () => {
         }
       })
 
-      const { error, details } = JSON.parse(response.body)
+      const { error, details } = JSON.parse(response.payload)
 
       expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 
@@ -335,7 +331,7 @@ describe('auth', () => {
           }
         })
 
-        const { error, details } = JSON.parse(response.body)
+        const { error, details } = JSON.parse(response.payload)
 
         expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 
@@ -361,7 +357,7 @@ describe('auth', () => {
           }
         })
 
-        const { error, details } = JSON.parse(response.body)
+        const { error, details } = JSON.parse(response.payload)
 
         expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 
@@ -385,7 +381,7 @@ describe('auth', () => {
           }
         })
 
-        const { error, details } = JSON.parse(response.body)
+        const { error, details } = JSON.parse(response.payload)
 
         expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 
@@ -409,7 +405,7 @@ describe('auth', () => {
           }
         })
 
-        const { error, details } = JSON.parse(response.body)
+        const { error, details } = JSON.parse(response.payload)
 
         expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 
@@ -433,7 +429,7 @@ describe('auth', () => {
           }
         })
 
-        const { error, details } = JSON.parse(response.body)
+        const { error, details } = JSON.parse(response.payload)
 
         expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 
@@ -442,11 +438,38 @@ describe('auth', () => {
       })
     })
   })
+
+  describe('verifySession', () => {
+    it('should verify a valid session', async () => {
+      const address = '0xB557916Bf4d38452048bA0d7f784a7F2421263c6'
+
+      const jwtSessionPayload = {
+        address,
+        chainId: sepolia.chainId.toString(),
+        jwtType: 'session'
+      }
+      const sessionToken = creatJWTLib.createJWT(jwtSessionPayload, SESSION_EXPIRATION_TIME)
+
+      const sessionPayload = authService.verifySession(sessionToken)
+
+      expect(sessionPayload.address).toEqual(address)
+      expect(sessionPayload.chainId).toEqual(sepolia.chainId.toString())
+      expect(sessionPayload.jwtType).toEqual('session')
+    })
+
+    it('should return an UnauthorizedError if it is an invalid session', async () => {
+      const invalidSessionToken = 'invalid.session.token'
+
+      expect(() => {
+        authService.verifySession(invalidSessionToken)
+      }).toThrow(UnauthorizedError)
+    })
+  })
 })
 
 function createTestSiweMessagePayload() {
   const address = '0xB557916Bf4d38452048bA0d7f784a7F2421263c6'
-  const chainId = 1
+  const chainId = mainnet.chainId
   const domain = 'localhost:3000'
   const issuedAt = '2025-06-05T18:28:09.694Z'
   const nonce = 'Qj80Vmv0reIIcIDok'
