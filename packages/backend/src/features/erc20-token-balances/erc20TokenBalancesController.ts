@@ -3,14 +3,27 @@ import StatusCodes from 'http-status-codes'
 
 import handleErrorResponse from '../../errors/handleError'
 import erc20TokenBalancesService from './erc20TokenBalancesService'
+import UnauthorizedError from '../../errors/UnauthorizedError'
 
 async function getBalances(request: FastifyRequest, response: FastifyReply) {
   try {
     const { address, chainId } = request.query as { address: string; chainId: string }
 
-    const sessionToken = getSessionTokenFromAuthHeader(request)
+    const sessionCookie = request.cookies['session-cookie']
 
-    const balances = await erc20TokenBalancesService.getBalances(sessionToken, address, chainId)
+    if (sessionCookie) {
+      const { value: sessionToken, valid } = request.unsignCookie(sessionCookie)
+
+      if (!valid || !sessionToken) {
+        throw new UnauthorizedError('Invalid session', { sessionToken })
+      }
+
+      const balances = await erc20TokenBalancesService.getBalances(address, chainId, sessionToken)
+
+      return response.code(StatusCodes.OK).send(balances)
+    }
+
+    const balances = await erc20TokenBalancesService.getBalances(address, chainId)
 
     return response.code(StatusCodes.OK).send(balances)
   } catch (error) {
@@ -25,9 +38,3 @@ const erc20TokenBalancesController = {
 }
 
 export default erc20TokenBalancesController
-
-function getSessionTokenFromAuthHeader(request: FastifyRequest): string | undefined {
-  const authorizationHeader = request.headers.authorization
-
-  return authorizationHeader?.replace('Bearer ', '')
-}

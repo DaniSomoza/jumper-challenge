@@ -3,6 +3,7 @@ import StatusCodes from 'http-status-codes'
 
 import authService, { SiweMessageData } from './authService'
 import handleErrorResponse from '../../errors/handleError'
+import { COOKIE_EXPIRATION_TIME } from '../../constants'
 
 async function getNonce(request: FastifyRequest, response: FastifyReply) {
   try {
@@ -40,7 +41,17 @@ async function signIn(request: FastifyRequest, response: FastifyReply) {
       nonceSigned
     })
 
-    return response.code(StatusCodes.OK).send({ sessionToken })
+    // Set a secure cookie
+    response.setCookie('session-cookie', sessionToken, {
+      httpOnly: true, // Mitigates XSS: disallows JavaScript access to the cookie
+      secure: true, // Ensures cookie is only sent over HTTPS
+      sameSite: 'lax', // Helps prevent CSRF attacks (reasonable default)
+      signed: true, // Signs the cookie to prevent tampering on the client
+      path: '/', // Cookie is valid for entire domain
+      maxAge: COOKIE_EXPIRATION_TIME // Expiration time (in seconds)
+    })
+
+    return response.code(StatusCodes.OK).send({})
   } catch (error) {
     const { code, body } = handleErrorResponse(error)
     return response.code(code).send(body)

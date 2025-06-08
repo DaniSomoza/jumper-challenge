@@ -1,29 +1,31 @@
 import type { SiweMessage } from 'siwe'
-import { type AxiosResponse } from 'axios'
-
-import Api from './Api'
+import axios from 'axios'
 
 const backendOrigin = import.meta.env.VITE_BACKEND_ORIGIN
 
-type nonceResponse = {
+type NonceResponse = {
   address: string
   nonce: string
   nonceSigned: string
 }
 
-export async function getNonce(address: string): Promise<AxiosResponse<nonceResponse>> {
+export async function getNonce(address: string): Promise<NonceResponse> {
   const getNonceEndpoint = `${backendOrigin}/auth/nonce/${address}`
 
-  return await Api.get<nonceResponse>(getNonceEndpoint)
+  const response = await axios.get<NonceResponse>(getNonceEndpoint, {
+    withCredentials: true
+  })
+
+  return response.data
 }
 
-export type signInBodyData = {
+export type SignInBodyData = {
   siweMessageData: Partial<SiweMessage>
   signature: string
   nonceSigned: string
 }
 
-type sessionResponse = {
+type SessionResponse = {
   sessionToken: string
 }
 
@@ -31,12 +33,16 @@ export async function signIn({
   siweMessageData,
   signature,
   nonceSigned
-}: signInBodyData): Promise<AxiosResponse<sessionResponse>> {
+}: SignInBodyData): Promise<SessionResponse> {
   const signInEndpoint = `${backendOrigin}/auth/session`
 
   const payload = { siweMessageData, signature, nonceSigned }
 
-  return await Api.post<sessionResponse, typeof payload>(signInEndpoint, payload)
+  const response = await axios.post<SessionResponse>(signInEndpoint, payload, {
+    withCredentials: true
+  })
+
+  return response.data
 }
 
 const authEndpoints = {

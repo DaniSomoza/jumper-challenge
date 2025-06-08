@@ -1,22 +1,24 @@
 import { createContext, useCallback, useContext, useEffect, useState, type JSX } from 'react'
 import { useAccount } from 'wagmi'
 
-import Api from '../api/Api'
-import authEndpoints from '../api/authEndpoints'
+import authEndpoints from '../http/authEndpoints'
 import useSiweAuth from '../hooks/useSiweAuth'
+import { getBalances, type ERC20TokenBalance } from '../http/balancesEndpoints'
 
 const initialContextValue = {
-  sessionToken: '',
   address: '',
   isAuthenticated: false,
-  signIn: () => Promise.resolve('')
+  isWalletConnected: false,
+  signIn: () => Promise.resolve(),
+  tokens: []
 }
 
 type authorizationContextValue = {
-  sessionToken: string
   address?: string
   isAuthenticated: boolean
-  signIn: () => Promise<string>
+  isWalletConnected: boolean
+  signIn: () => Promise<void>
+  tokens: ERC20TokenBalance[]
 }
 
 const authorizationContext = createContext<authorizationContextValue>(initialContextValue)
@@ -36,57 +38,62 @@ type AuthorizationProviderProps = {
 }
 
 function AuthorizationProvider({ children }: AuthorizationProviderProps) {
-  // TODO: store this in the local storage
-  // const [sessionToken, setSessionToken] = useLocalStorageState(SESSION_TOKEN_STORAGE_KEY, '')
-  const [sessionToken, setSessionToken] = useState('')
-
   const account = useAccount()
+  const [tokens, setTokens] = useState<ERC20TokenBalance[]>([])
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+
+  // TODO: isLoading state
+  // TODO: implement expire session and logout properly
+
+  const { address = '', chainId } = account
+  const isWalletConnected = !!account.address && account.isConnected
 
   const { signSiweMessage } = useSiweAuth()
 
-  const { address = '', chainId } = account
-  const isAuthenticated = !!sessionToken
+  const fetchBalances = useCallback(async () => {
+    getBalances()
+      .then(({ tokens }) => {
+        console.log('tokens: ', tokens)
 
-  // TODO: implement expire session and logout properly
-
-  useEffect(() => {
-    // logout
-    setSessionToken('')
-  }, [address])
-
-  useEffect(() => {
-    Api.setSessionToken(sessionToken)
-  }, [sessionToken])
+        setTokens(tokens)
+        setIsAuthenticated(true)
+      })
+      .catch(() => {
+        setIsAuthenticated(false)
+      })
+  }, [])
 
   const signIn = useCallback(async () => {
     if (!address || !chainId) {
       throw 'TODO: implement frontend side errors!'
     }
 
-    const getNonceApiResponse = await authEndpoints.getNonce(address)
-
-    const { nonce, nonceSigned } = getNonceApiResponse.data
+    const { nonce, nonceSigned } = await authEndpoints.getNonce(address)
 
     const { signature, siweMessage } = await signSiweMessage(address, nonce, chainId)
 
-    const signInApiResponse = await authEndpoints.signIn({
+    await authEndpoints.signIn({
       siweMessageData: siweMessage,
       signature,
       nonceSigned
     })
 
-    const { sessionToken } = signInApiResponse.data
+    await fetchBalances()
+  }, [address, signSiweMessage, chainId, fetchBalances])
 
-    setSessionToken(sessionToken)
-
-    return sessionToken
-  }, [address, signSiweMessage, chainId])
+  // We check here if the user is autenticated or not
+  useEffect(() => {
+    if (isWalletConnected) {
+      fetchBalances()
+    }
+  }, [isWalletConnected, fetchBalances])
 
   const value = {
-    sessionToken,
+    isWalletConnected,
     isAuthenticated,
     address,
-    signIn
+    signIn,
+    tokens
   }
 
   return <authorizationContext.Provider value={value}>{children}</authorizationContext.Provider>
