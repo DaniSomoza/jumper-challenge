@@ -1,34 +1,24 @@
-import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 
 import emptyTokenLogo from '/empty_token_placeholder.webp'
-import { getBalances, type ERC20TokenBalance } from '../../api/balancesEndpoints'
+import { type ERC20TokenBalance } from '../../http/balancesEndpoints'
 import Avatar from '@mui/material/Avatar'
 import CardContent from '@mui/material/CardContent'
 import { formatUnits } from 'viem'
 
-function Balances() {
-  const [tokens, setTokens] = useState<ERC20TokenBalance[]>([])
+type BalancesProps = {
+  tokens: ERC20TokenBalance[]
+}
 
+function Balances({ tokens }: BalancesProps) {
   // TODO: API call error hanlder
 
   // TODO: SHOW PROVIDER (ALCHEMY OR MORALIS)
 
   // TODO: call endpoint balances
-  useEffect(() => {
-    // call to the endpoint
-
-    // TODO: if 401 logout!!!
-
-    getBalances().then((response) => {
-      console.log('response: ', response)
-
-      setTokens(response.data.tokens)
-    })
-  }, [])
 
   // TODO: implement custom address or chainId in the frontend
 

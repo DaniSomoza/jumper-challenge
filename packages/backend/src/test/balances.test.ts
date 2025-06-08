@@ -102,11 +102,13 @@ describe('balances', () => {
         jwtType: 'session'
       })
 
+      const signedCookie = testServer.server.signCookie('validSessionToken')
+
       const response = await testServer.server.inject({
         method: 'GET',
         url: '/balances',
         headers: {
-          Authorization: 'Bearer validSessionToken'
+          cookie: `session-cookie=${signedCookie}`
         }
       })
 
@@ -171,11 +173,13 @@ describe('balances', () => {
       expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
       expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
 
+      const signedCookie = testServer.server.signCookie('invalidSessionToken')
+
       const response = await testServer.server.inject({
         method: 'GET',
         url: '/balances',
         headers: {
-          Authorization: 'Bearer invalidSessionToken'
+          cookie: `session-cookie=${signedCookie}`
         }
       })
 

@@ -95,10 +95,23 @@ describe('auth', () => {
         }
       })
 
-      const { sessionToken } = JSON.parse(response.payload)
-
       expect(response.statusCode).toEqual(StatusCodes.OK)
-      expect(sessionToken).toEqual(mockedSessionToken)
+      expect(JSON.parse(response.payload)).toEqual({})
+
+      // Check cookie exists
+      const cookies = response.headers['set-cookie']
+      expect(cookies).toBeDefined()
+
+      // Check that session-cookie is set
+      const sessionCookie = Array.isArray(cookies)
+        ? cookies.find((cookie) => cookie.startsWith('session-cookie='))
+        : cookies
+
+      // session cookie is secure
+      expect(sessionCookie).toContain(mockedSessionToken)
+      expect(sessionCookie).toContain('HttpOnly')
+      expect(sessionCookie).toContain('Secure')
+      expect(sessionCookie).toContain('SameSite=Lax')
 
       verifyNonceJWTMock.mockRestore()
       createJWTMock.mockRestore()

@@ -1,6 +1,4 @@
-import { type AxiosResponse } from 'axios'
-
-import Api from './Api'
+import axios from 'axios'
 
 const backendOrigin = import.meta.env.VITE_BACKEND_ORIGIN
 
@@ -35,15 +33,18 @@ export type TokenPrice = {
   updatedAt: string
 }
 
-export async function getBalances(
-  address?: string,
-  chainId?: number
-): Promise<AxiosResponse<Balances>> {
-  const getBalancesEndpoint = `${backendOrigin}/balances`
+export async function getBalances(address?: string, chainId?: number): Promise<Balances> {
+  const balancesEndpoint = `${backendOrigin}/balances`
 
   if (address && chainId) {
-    return await Api.get<Balances>(`${getBalancesEndpoint}?address=${address}&chainId=${chainId}`)
+    const queryParams = `address=${address}&chainId=${chainId}`
+
+    const response = await axios.get<Balances>(`${balancesEndpoint}?${queryParams}`)
+
+    return response.data
   }
 
-  return await Api.get<Balances>(getBalancesEndpoint)
+  const response = await axios.get<Balances>(balancesEndpoint, { withCredentials: true })
+
+  return response.data
 }

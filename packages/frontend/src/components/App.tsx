@@ -1,5 +1,5 @@
 import { getDefaultConfig, RainbowKitProvider, ConnectButton } from '@rainbow-me/rainbowkit'
-import { WagmiProvider, useAccount } from 'wagmi'
+import { WagmiProvider } from 'wagmi'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
@@ -16,11 +16,7 @@ import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 
 function App() {
-  const account = useAccount()
-
-  const isWalletConnected = !!account.address && account.isConnected
-
-  const { signIn, isAuthenticated } = useAuthorization()
+  const { signIn, isWalletConnected, isAuthenticated, tokens } = useAuthorization()
 
   return (
     <>
@@ -42,7 +38,7 @@ function App() {
         ) : (
           <>
             {isAuthenticated ? (
-              <Balances />
+              <Balances tokens={tokens} />
             ) : (
               <Box
                 component="section"

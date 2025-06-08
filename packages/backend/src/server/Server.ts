@@ -1,11 +1,19 @@
 import Fastify, { FastifyInstance, RouteOptions } from 'fastify'
+import fastifyCookie from '@fastify/cookie'
 import cors from '@fastify/cors'
+
+import { JWT_SECRET } from '../constants'
 
 class Server {
   server: FastifyInstance
 
   constructor(serverOptions: ServerOptions) {
     this.server = Fastify(serverOptions)
+
+    this.server.register(fastifyCookie, {
+      secret: JWT_SECRET,
+      parseOptions: {}
+    })
   }
 
   start(host: string, port: number) {
@@ -15,7 +23,8 @@ class Server {
   configureCors(origin: string[]) {
     this.server.register(cors, {
       origin,
-      methods: ['GET', 'PUT', 'POST', 'DELETE']
+      methods: ['GET', 'PUT', 'POST', 'DELETE'],
+      credentials: true
     })
   }
 
