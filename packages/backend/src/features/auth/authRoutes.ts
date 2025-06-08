@@ -1,5 +1,5 @@
-import { Route } from '../server/Server'
-import authController from '../features/auth/authController'
+import { Route } from '../../server/Server'
+import authController from './authController'
 
 export const NONCE_PATH = '/auth/nonce/:address'
 export const SIGNIN_PATH = '/auth/session'

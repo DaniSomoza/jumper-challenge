@@ -12,9 +12,9 @@ type nonceResponse = {
 }
 
 export async function getNonce(address: string): Promise<AxiosResponse<nonceResponse>> {
-  const getNonceEnpoint = `${backendOrigin}/auth/nonce/${address}`
+  const getNonceEndpoint = `${backendOrigin}/auth/nonce/${address}`
 
-  return await Api.get<nonceResponse>(getNonceEnpoint)
+  return await Api.get<nonceResponse>(getNonceEndpoint)
 }
 
 export type signInBodyData = {

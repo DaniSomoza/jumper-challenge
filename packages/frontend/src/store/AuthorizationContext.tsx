@@ -36,6 +36,7 @@ type AuthorizationProviderProps = {
 }
 
 function AuthorizationProvider({ children }: AuthorizationProviderProps) {
+  // TODO: store this in the local storage
   // const [sessionToken, setSessionToken] = useLocalStorageState(SESSION_TOKEN_STORAGE_KEY, '')
   const [sessionToken, setSessionToken] = useState('')
 
