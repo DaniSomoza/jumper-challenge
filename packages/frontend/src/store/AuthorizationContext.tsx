@@ -6,13 +6,13 @@ import useSiweAuth from '../hooks/useSiweAuth'
 
 const initialContextValue = {
   address: '',
-  isAuthenticated: false,
+  isAuthenticated: true,
   setIsAuthenticated: () => {},
   isWalletConnected: false,
   isDisconnecting: false,
+  isSwitchChainLoading: false,
   signIn: () => Promise.resolve(),
   logout: () => {}
-  // TODO: loading states
 }
 
 type authorizationContextValue = {
@@ -22,6 +22,7 @@ type authorizationContextValue = {
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>
   isWalletConnected: boolean
   isDisconnecting: boolean
+  isSwitchChainLoading: boolean
   switchChain?: ({ chainId }: { chainId: number }) => void
   signIn: (chainId: number) => Promise<void>
   logout: () => void
@@ -45,11 +46,11 @@ type AuthorizationProviderProps = {
 
 function AuthorizationProvider({ children }: AuthorizationProviderProps) {
   const account = useAccount()
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true)
 
   const { disconnect, isPending: isDisconnecting } = useDisconnect()
 
-  const { switchChain } = useSwitchChain()
+  const { switchChain, isPending: isSwitchChainLoading } = useSwitchChain()
 
   const logout = useCallback(() => {
     disconnect()
@@ -63,8 +64,8 @@ function AuthorizationProvider({ children }: AuthorizationProviderProps) {
 
   const signIn = useCallback(
     async (chainId: number) => {
-      if (!address || !chainId) {
-        throw 'TODO: implement frontend side errors!'
+      if (!address) {
+        return
       }
 
       const { nonce, nonceSigned } = await authEndpoints.getNonce(address)
@@ -77,6 +78,8 @@ function AuthorizationProvider({ children }: AuthorizationProviderProps) {
           signature,
           nonceSigned
         })
+
+        setIsAuthenticated(true)
       } catch (error) {
         // TODO: show sign in button again!!
         console.log('SIGN IN FAILED! => ', error)
@@ -89,6 +92,7 @@ function AuthorizationProvider({ children }: AuthorizationProviderProps) {
     isWalletConnected,
     isAuthenticated,
     setIsAuthenticated,
+    isSwitchChainLoading,
     address,
     chainId,
     switchChain,

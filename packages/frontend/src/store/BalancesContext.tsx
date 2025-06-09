@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, type JSX } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, type JSX } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { getBalances, type Balances } from '../http/balancesEndpoints'
@@ -40,7 +40,7 @@ type BalancesProviderProps = {
 }
 
 function BalancesProvider({ children }: BalancesProviderProps) {
-  const { setIsAuthenticated, isWalletConnected, chainId, signIn } = useAuthorization()
+  const { setIsAuthenticated, isAuthenticated, chainId, signIn } = useAuthorization()
 
   const {
     data: balances,
@@ -52,37 +52,41 @@ function BalancesProvider({ children }: BalancesProviderProps) {
   } = useQuery<Balances, AxiosError, Balances, ['balances']>({
     queryKey: ['balances'],
     queryFn: async () => {
-      const balances = await getBalances()
-      setIsAuthenticated(true)
-      return balances
+      try {
+        const balances = await getBalances()
+        setIsAuthenticated(true)
+
+        return balances
+      } catch (error) {
+        // TODO: if 401
+        setIsAuthenticated(false)
+
+        throw error
+      }
     },
-    enabled: isWalletConnected,
+    enabled: isAuthenticated,
     retry: false
   })
 
-  // We check here if the user is autenticated or not
-  useEffect(() => {
-    if (isWalletConnected) {
-      refetch()
-    }
-  }, [isWalletConnected])
-
-  // TODO: cuando hago login se llama varias veces!!
+  const previousChainId = useRef<number | undefined>(undefined)
 
   // switch chain => signIn => getBalances
   useEffect(() => {
-    if (chainId) {
+    const chainHasChanged =
+      previousChainId.current !== undefined && previousChainId.current !== chainId
+
+    if (chainHasChanged && chainId) {
       signIn(chainId).then(() => {
         refetch()
       })
     }
-  }, [chainId])
+
+    previousChainId.current = chainId
+  }, [chainId, signIn])
 
   const fetchBalances = useCallback(async () => {
     await refetch()
   }, [])
-
-  console.log('@@@@ error: ', error)
 
   const value = {
     fetchBalances,

@@ -19,15 +19,7 @@ import { BalancesProvider, useBalances } from '../store/BalancesContext'
 function App() {
   const { chainId, signIn, isWalletConnected, isAuthenticated } = useAuthorization()
 
-  const { balances, fetchBalances, isBalancesLoading, isBalancesError, isBalancesFetching, error } =
-    useBalances()
-
-  async function performSignIn() {
-    if (chainId) {
-      await signIn(chainId)
-      await fetchBalances()
-    }
-  }
+  const { balances, isBalancesLoading, isBalancesError, isBalancesFetching, error } = useBalances()
 
   return (
     <>
@@ -65,7 +57,7 @@ function App() {
                 alignItems={'center'}
                 mt={5}
               >
-                <Button onClick={performSignIn} variant="contained">
+                <Button onClick={() => signIn(chainId!)} variant="contained">
                   signIn
                 </Button>
               </Box>

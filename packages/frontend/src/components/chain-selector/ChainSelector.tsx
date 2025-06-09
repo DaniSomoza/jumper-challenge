@@ -8,27 +8,34 @@ import chains from '../../chains/chains'
 import { useAuthorization } from '../../store/AuthorizationContext'
 
 function ChainSelector() {
-  const { chainId, switchChain, isWalletConnected } = useAuthorization()
+  const { chainId, switchChain, isWalletConnected, isSwitchChainLoading } = useAuthorization()
+
+  const showChainSelector = isWalletConnected && chainId
 
   // TODO: create chain label component
 
   // TODO: Incompatible chain detected in the wallet!
 
-  const handleChange = async (event: SelectChangeEvent<number>) => {
+  const handleChange = (event: SelectChangeEvent<number>) => {
     const chainId = Number(event.target.value)
 
-    if (switchChain) {
+    if (switchChain && chainId) {
       switchChain({ chainId })
     }
   }
 
-  if (!isWalletConnected || !chainId) {
+  if (!showChainSelector) {
     return null
   }
 
   return (
     <FormControl sx={{ ml: 2, minWidth: 120, textAlign: 'center' }}>
-      <Select value={chainId} onChange={handleChange} input={<CustomInput />}>
+      <Select
+        value={chainId}
+        onChange={handleChange}
+        input={<CustomInput />}
+        disabled={isSwitchChainLoading}
+      >
         {chains.map((chain) => (
           <MenuItem key={chain.id} value={chain.id}>
             {chain.name}
