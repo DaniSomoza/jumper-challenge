@@ -1,17 +1,26 @@
-import { createContext, useCallback, useContext, useEffect, useState, type JSX } from 'react'
+import { createContext, useCallback, useContext, useEffect, type JSX } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
 import { getBalances, type Balances } from '../http/balancesEndpoints'
 import { useAuthorization } from './AuthorizationContext'
+import type { AxiosError } from 'axios'
 
 const initialContextValue = {
   fetchBalances: () => Promise.resolve(),
-  balances: undefined
-  // TODO: loading states
+  balances: undefined,
+  isBalancesLoading: true,
+  isBalancesError: false,
+  isBalancesFetching: true,
+  error: undefined
 }
 
 type balancesContextValue = {
   fetchBalances: () => Promise<void>
   balances?: Balances
+  isBalancesLoading: boolean
+  isBalancesError: boolean
+  isBalancesFetching: boolean
+  error?: AxiosError | null // TODO: change this to a Frontend error???
 }
 
 const balancesContext = createContext<balancesContextValue>(initialContextValue)
@@ -33,45 +42,56 @@ type BalancesProviderProps = {
 function BalancesProvider({ children }: BalancesProviderProps) {
   const { setIsAuthenticated, isWalletConnected, chainId, signIn } = useAuthorization()
 
-  const [balances, setBalances] = useState<Balances>()
-
-  const fetchBalances = useCallback(async () => {
-    setBalances(undefined)
-
-    try {
+  const {
+    data: balances,
+    refetch,
+    isLoading: isBalancesLoading,
+    isError: isBalancesError,
+    isFetching: isBalancesFetching,
+    error
+  } = useQuery<Balances, AxiosError, Balances, ['balances']>({
+    queryKey: ['balances'],
+    queryFn: async () => {
       const balances = await getBalances()
-
-      setBalances(balances)
       setIsAuthenticated(true)
-    } catch {
-      // TODO: handle error si 401...
-      setIsAuthenticated(false)
-      setBalances(undefined)
-
-      // TODO: si el error es BadGatewayError o 502 => fallaron los endpoints de alchemy
-    }
-  }, [])
+      return balances
+    },
+    enabled: isWalletConnected,
+    retry: false
+  })
 
   // We check here if the user is autenticated or not
   useEffect(() => {
     if (isWalletConnected) {
-      fetchBalances()
-      // TODO: set the correct chain if 200
+      refetch()
     }
-  }, [isWalletConnected, fetchBalances])
+  }, [isWalletConnected])
+
+  // TODO: cuando hago login se llama varias veces!!
 
   // switch chain => signIn => getBalances
   useEffect(() => {
     if (chainId) {
       signIn(chainId).then(() => {
-        fetchBalances()
+        refetch()
       })
     }
   }, [chainId])
 
+  const fetchBalances = useCallback(async () => {
+    await refetch()
+  }, [])
+
+  console.log('@@@@ error: ', error)
+
   const value = {
     fetchBalances,
-    balances
+    balances,
+    isBalancesLoading,
+    isBalancesError,
+    isBalancesFetching,
+    // TODO: create wrap of the backend error to a FrontendError
+    error
   }
 
   return <balancesContext.Provider value={value}>{children}</balancesContext.Provider>

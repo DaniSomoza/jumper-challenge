@@ -19,7 +19,8 @@ import { BalancesProvider, useBalances } from '../store/BalancesContext'
 function App() {
   const { chainId, signIn, isWalletConnected, isAuthenticated } = useAuthorization()
 
-  const { balances, fetchBalances } = useBalances()
+  const { balances, fetchBalances, isBalancesLoading, isBalancesError, isBalancesFetching, error } =
+    useBalances()
 
   async function performSignIn() {
     if (chainId) {
@@ -48,7 +49,13 @@ function App() {
         ) : (
           <>
             {isAuthenticated ? (
-              <BalanceList balances={balances} />
+              <BalanceList
+                balances={balances}
+                isLoading={isBalancesLoading}
+                isBalancesError={isBalancesError}
+                isBalancesFetching={isBalancesFetching}
+                error={error}
+              />
             ) : (
               <Box
                 component="section"

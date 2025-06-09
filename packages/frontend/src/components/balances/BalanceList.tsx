@@ -9,12 +9,23 @@ import CardContent from '@mui/material/CardContent'
 import emptyTokenLogo from '/empty_token_placeholder.webp'
 import { type Balances, type ERC20TokenBalance } from '../../http/balancesEndpoints'
 import Loader from '../loader/Loader'
+import type { AxiosError } from 'axios'
 
 type BalanceListProps = {
   balances?: Balances
+  isLoading: boolean
+  isBalancesError: boolean
+  isBalancesFetching: boolean
+  error?: AxiosError | null
 }
 
-function BalanceList({ balances }: BalanceListProps) {
+function BalanceList({
+  balances,
+  isLoading,
+  isBalancesError,
+  isBalancesFetching,
+  error
+}: BalanceListProps) {
   // TODO: API call error hanlder
 
   // TODO: SHOW PROVIDER (ALCHEMY OR MORALIS)
@@ -23,7 +34,7 @@ function BalanceList({ balances }: BalanceListProps) {
 
   // TODO: implement custom address or chainId in the frontend
 
-  if (!balances) {
+  if (!balances || isLoading || isBalancesFetching) {
     return <Loader isLoading />
   }
 
