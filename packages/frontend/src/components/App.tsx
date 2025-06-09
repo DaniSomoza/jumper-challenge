@@ -14,10 +14,19 @@ import BalanceList from './balances/BalanceList'
 import Header from './header/Header'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
+import { BalancesProvider, useBalances } from '../store/BalancesContext'
 
 function App() {
-  const { chainId, signIn, isWalletConnected, isAuthenticated, balances, fetchBalances } =
-    useAuthorization()
+  const { chainId, signIn, isWalletConnected, isAuthenticated } = useAuthorization()
+
+  const { balances, fetchBalances } = useBalances()
+
+  async function performSignIn() {
+    if (chainId) {
+      await signIn(chainId)
+      await fetchBalances()
+    }
+  }
 
   return (
     <>
@@ -49,15 +58,7 @@ function App() {
                 alignItems={'center'}
                 mt={5}
               >
-                <Button
-                  onClick={async () => {
-                    if (chainId) {
-                      await signIn(chainId)
-                      await fetchBalances()
-                    }
-                  }}
-                  variant="contained"
-                >
+                <Button onClick={performSignIn} variant="contained">
                   signIn
                 </Button>
               </Box>
@@ -91,9 +92,11 @@ function AppProviders() {
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
           <AuthorizationProvider>
-            <ThemeProvider theme={darkTheme}>
-              <App />
-            </ThemeProvider>
+            <BalancesProvider>
+              <ThemeProvider theme={darkTheme}>
+                <App />
+              </ThemeProvider>
+            </BalancesProvider>
           </AuthorizationProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
