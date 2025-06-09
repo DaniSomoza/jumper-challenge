@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 
 import { getBalances, type Balances } from '../http/balancesEndpoints'
 import { useAuthorization } from './AuthorizationContext'
-import type { AxiosError } from 'axios'
+import { AxiosError } from 'axios'
+import type { ApiServiceError } from '../errors/getErrorLabel'
 
 const initialContextValue = {
   fetchBalances: () => Promise.resolve(),
@@ -20,7 +21,7 @@ type balancesContextValue = {
   isBalancesLoading: boolean
   isBalancesError: boolean
   isBalancesFetching: boolean
-  error?: AxiosError | null // TODO: change this to a Frontend error???
+  error?: ApiServiceError
 }
 
 const balancesContext = createContext<balancesContextValue>(initialContextValue)
@@ -49,7 +50,7 @@ function BalancesProvider({ children }: BalancesProviderProps) {
     isError: isBalancesError,
     isFetching: isBalancesFetching,
     error
-  } = useQuery<Balances, AxiosError, Balances, ['balances']>({
+  } = useQuery<Balances, ApiServiceError, Balances, ['balances']>({
     queryKey: ['balances'],
     queryFn: async () => {
       try {
@@ -58,14 +59,18 @@ function BalancesProvider({ children }: BalancesProviderProps) {
 
         return balances
       } catch (error) {
-        // TODO: if 401
-        setIsAuthenticated(false)
+        if (error instanceof AxiosError) {
+          if (error.status === 401) {
+            setIsAuthenticated(false)
+          }
+        }
 
         throw error
       }
     },
     enabled: isAuthenticated,
-    retry: false
+    retry: false,
+    refetchOnWindowFocus: false
   })
 
   const previousChainId = useRef<number | undefined>(undefined)
@@ -94,7 +99,6 @@ function BalancesProvider({ children }: BalancesProviderProps) {
     isBalancesLoading,
     isBalancesError,
     isBalancesFetching,
-    // TODO: create wrap of the backend error to a FrontendError
     error
   }
 

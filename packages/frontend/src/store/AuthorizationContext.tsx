@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useState, type JSX } from 'react'
 import { useAccount, useDisconnect, useSwitchChain } from 'wagmi'
+import type { Chain } from 'wagmi/chains'
 
 import authEndpoints from '../http/authEndpoints'
 import useSiweAuth from '../hooks/useSiweAuth'
@@ -18,6 +19,7 @@ const initialContextValue = {
 type authorizationContextValue = {
   address?: string
   chainId?: number
+  chain?: Chain
   isAuthenticated: boolean
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>
   isWalletConnected: boolean
@@ -52,6 +54,9 @@ function AuthorizationProvider({ children }: AuthorizationProviderProps) {
 
   const { switchChain, isPending: isSwitchChainLoading } = useSwitchChain()
 
+  // Note: For a complete logout, the session cookie should also be cleared on the server-side.
+  // Since httpOnly cookies cannot be accessed or deleted from the frontend (by design, for security),
+  // it's recommended to implement a /logout backend endpoint that clears the cookie.
   const logout = useCallback(() => {
     disconnect()
     setIsAuthenticated(false)
@@ -81,8 +86,8 @@ function AuthorizationProvider({ children }: AuthorizationProviderProps) {
 
         setIsAuthenticated(true)
       } catch (error) {
-        // TODO: show sign in button again!!
-        console.log('SIGN IN FAILED! => ', error)
+        setIsAuthenticated(false)
+        throw error
       }
     },
     [address, signSiweMessage]
@@ -95,6 +100,7 @@ function AuthorizationProvider({ children }: AuthorizationProviderProps) {
     isSwitchChainLoading,
     address,
     chainId,
+    chain: account.chain,
     switchChain,
     signIn,
     logout,

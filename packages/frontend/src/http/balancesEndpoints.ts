@@ -2,7 +2,6 @@ import axios from 'axios'
 
 const backendOrigin = import.meta.env.VITE_BACKEND_ORIGIN
 
-// TODO: review this duplicity
 export type BalanceProvider = {
   name: string
   logo: string
@@ -35,9 +34,6 @@ export type TokenPrice = {
 
 export async function getBalances(address?: string, chainId?: number): Promise<Balances> {
   const balancesEndpoint = `${backendOrigin}/balances`
-
-  // TODO: remove this log
-  console.log('>>> CALLING GET BALACES ENDPOINT!!!')
 
   if (address && chainId) {
     const queryParams = `address=${address}&chainId=${chainId}`

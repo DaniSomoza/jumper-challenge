@@ -15,11 +15,14 @@ import Header from './header/Header'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import { BalancesProvider, useBalances } from '../store/BalancesContext'
+import Alert from '@mui/material/Alert'
 
 function App() {
   const { chainId, signIn, isWalletConnected, isAuthenticated } = useAuthorization()
 
   const { balances, isBalancesLoading, isBalancesError, isBalancesFetching, error } = useBalances()
+
+  const showIncompatibleChainDetected = chainId && !chains.some((chain) => chain.id === chainId)
 
   return (
     <>
@@ -34,8 +37,14 @@ function App() {
           </Typography>
         </Box>
 
+        {showIncompatibleChainDetected && (
+          <Box display={'flex'} justifyContent={'center'} mt={2}>
+            <Alert severity="warning">Unsupported Chain detected.</Alert>
+          </Box>
+        )}
+
         {!isWalletConnected ? (
-          <Box component="section" display={'flex'} justifyContent={'center'} mt={5}>
+          <Box component="section" display={'flex'} justifyContent={'center'} mt={3}>
             <ConnectButton />
           </Box>
         ) : (
@@ -56,9 +65,16 @@ function App() {
                 justifyContent={'center'}
                 alignItems={'center'}
                 mt={5}
+                gap={2}
               >
+                <Alert severity="success"> Wallet connected</Alert>
+
+                <Typography variant="body1" align="center">
+                  Please sign a SIWE message to complete authentication.
+                </Typography>
+
                 <Button onClick={() => signIn(chainId!)} variant="contained">
-                  signIn
+                  Sign In with Ethereum
                 </Button>
               </Box>
             )}
@@ -70,15 +86,13 @@ function App() {
 }
 
 const config = getDefaultConfig({
-  appName: 'My RainbowKit App',
-  // TODO: create a env var for WALLETCONNECT_PROJECT_ID
-  projectId: 'YOUR_PROJECT_ID',
+  appName: 'Jumper code challenge App',
+  projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
   chains: [chains[0], ...chains.slice(1)]
 })
 
 const queryClient = new QueryClient()
 
-// TODO: create a themeProvider to customize the MUI theme
 const darkTheme = createTheme({
   palette: {
     mode: 'dark'

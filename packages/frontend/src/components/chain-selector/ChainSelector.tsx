@@ -12,10 +12,6 @@ function ChainSelector() {
 
   const showChainSelector = isWalletConnected && chainId
 
-  // TODO: create chain label component
-
-  // TODO: Incompatible chain detected in the wallet!
-
   const handleChange = (event: SelectChangeEvent<number>) => {
     const chainId = Number(event.target.value)
 

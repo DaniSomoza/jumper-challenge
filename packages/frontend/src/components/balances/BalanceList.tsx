@@ -1,47 +1,27 @@
-import { formatUnits } from 'viem'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
+import Paper from '@mui/material/Paper'
 import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import Avatar from '@mui/material/Avatar'
-import CardContent from '@mui/material/CardContent'
 
-import emptyTokenLogo from '/empty_token_placeholder.webp'
-import { type Balances, type ERC20TokenBalance } from '../../http/balancesEndpoints'
+import { type Balances } from '../../http/balancesEndpoints'
 import Loader from '../loader/Loader'
 import type { AxiosError } from 'axios'
+import chains from '../../chains/chains'
+import TokenCard from '../token-card/TokenCard'
+import getErrorLabel from '../../errors/getErrorLabel'
 
 type BalanceListProps = {
   balances?: Balances
   isLoading: boolean
   isBalancesError: boolean
   isBalancesFetching: boolean
-  error?: AxiosError | null
+  error?: AxiosError<{ error: string }> | null
 }
 
-function BalanceList({
-  balances,
-  isLoading,
-  isBalancesError,
-  isBalancesFetching,
-  error
-}: BalanceListProps) {
-  // TODO: API call error hanlder
+function BalanceList({ balances, isLoading, isBalancesFetching, error }: BalanceListProps) {
+  const showLoader = isLoading || isBalancesFetching
 
-  // TODO: SHOW PROVIDER (ALCHEMY OR MORALIS)
-
-  // TODO: call endpoint balances
-
-  // TODO: implement custom address or chainId in the frontend
-
-  if (!balances || isLoading || isBalancesFetching) {
-    return <Loader isLoading />
-  }
-
-  // const { tokens, provider, address, chainId } = balances
-  const { tokens } = balances
-
-  // TODO: show provider, address, chainId
+  const chain = chains.find((chain) => chain.id === balances?.chainId)
 
   return (
     <Box
@@ -55,85 +35,47 @@ function BalanceList({
         Balances
       </Typography>
 
-      <Typography>Your ERC20 Tokens:</Typography>
-
-      {tokens.length === 0 ? (
-        <Typography>0 ERC20 Tokens found...</Typography>
-      ) : (
-        <Grid container spacing={2} padding={1}>
-          {tokens.map((token) => {
-            // TODO: create a token list component?
-            // TODO: show address in etherscan
-
-            // TODO: No tokens present!
-
-            // TODO: format amount based on decimals!
-
-            return <TokenCard token={token} key={token.address} />
-          })}
-        </Grid>
+      {!showLoader && (
+        <Typography mt={1} variant="caption">
+          Your ERC20 Tokens in {chain?.name} via {balances?.provider.name}
+        </Typography>
       )}
+
+      <Paper variant="outlined">
+        <Grid
+          container
+          spacing={2}
+          padding={1}
+          sx={{
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}
+        >
+          {showLoader ? (
+            <Loader isLoading loadingText={'Loading balances...'} />
+          ) : (
+            <>
+              {error ? (
+                <div>Show error: {getErrorLabel(error)}</div>
+              ) : (
+                <>
+                  {balances?.tokens.length === 0 ? (
+                    <Typography padding={2}>0 ERC20 Tokens found in {chain?.name}...</Typography>
+                  ) : (
+                    <>
+                      {balances?.tokens.map((token) => {
+                        return <TokenCard token={token} key={token.address} chain={chain} />
+                      })}
+                    </>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </Grid>
+      </Paper>
     </Box>
   )
 }
 
 export default BalanceList
-
-// TODO: create a helper in the frontend
-function formatAmount(amount: string, decimals: number, precision = 4) {
-  return parseFloat(formatUnits(BigInt(amount), decimals))
-    .toFixed(precision)
-    .replace(/\.?0+$/, '') // remove last 0 xx.xx0000 => xx.xx
-}
-
-type TokenCardProps = {
-  token: ERC20TokenBalance
-}
-
-const ERC20_LOGO_SIZE = 86 // px
-const ERC20_CARD_SIZE = 200 // px
-
-function TokenCard({ token }: TokenCardProps) {
-  const hasPrice = token.price && token.price.value
-
-  return (
-    <Card variant="outlined" sx={{ width: ERC20_CARD_SIZE, padding: 1, paddingTop: 2 }}>
-      <Box display={'flex'} justifyContent={'center'}>
-        <Avatar
-          src={token.logo || emptyTokenLogo}
-          alt={token.name}
-          sx={{
-            height: ERC20_LOGO_SIZE,
-            width: ERC20_LOGO_SIZE
-          }}
-        />
-      </Box>
-
-      {/* //TODO: show contract address with a link to the blockexplorer */}
-
-      <CardContent>
-        <Typography variant="h6" align="center">
-          {token.name || 'ERC20 Token'}
-        </Typography>
-
-        <Typography
-          variant="subtitle2"
-          align="center"
-          color="gray"
-          noWrap
-          sx={{
-            textOverflow: 'ellipsis',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          {formatAmount(token.balance, token.decimals, 4)} {token.symbol}
-        </Typography>
-
-        <Typography variant="body2" align="center" color="gray">
-          {hasPrice ? `${token?.price?.value} ${token?.price?.currency}` : '0 $'}
-        </Typography>
-      </CardContent>
-    </Card>
-  )
-}
