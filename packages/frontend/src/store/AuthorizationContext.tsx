@@ -1,24 +1,33 @@
 import { createContext, useCallback, useContext, useEffect, useState, type JSX } from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useDisconnect, useSwitchChain } from 'wagmi'
 
 import authEndpoints from '../http/authEndpoints'
 import useSiweAuth from '../hooks/useSiweAuth'
-import { getBalances, type ERC20TokenBalance } from '../http/balancesEndpoints'
+import { getBalances, type Balances } from '../http/balancesEndpoints'
 
 const initialContextValue = {
   address: '',
   isAuthenticated: false,
   isWalletConnected: false,
+  isDisconnecting: false,
   signIn: () => Promise.resolve(),
-  tokens: []
+  logout: () => {},
+  fetchBalances: () => Promise.resolve(),
+  balances: undefined
+  // TODO: loading states
 }
 
 type authorizationContextValue = {
   address?: string
+  chainId?: number
   isAuthenticated: boolean
   isWalletConnected: boolean
-  signIn: () => Promise<void>
-  tokens: ERC20TokenBalance[]
+  isDisconnecting: boolean
+  switchChain?: ({ chainId }: { chainId: number }) => void
+  signIn: (chainId: number) => Promise<void>
+  logout: () => void
+  fetchBalances: () => Promise<void>
+  balances?: Balances
 }
 
 const authorizationContext = createContext<authorizationContextValue>(initialContextValue)
@@ -39,11 +48,17 @@ type AuthorizationProviderProps = {
 
 function AuthorizationProvider({ children }: AuthorizationProviderProps) {
   const account = useAccount()
-  const [tokens, setTokens] = useState<ERC20TokenBalance[]>([])
+  const [balances, setBalances] = useState<Balances>()
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
 
-  // TODO: isLoading state
-  // TODO: implement expire session and logout properly
+  const { disconnect, isPending: isDisconnecting } = useDisconnect()
+
+  const { switchChain } = useSwitchChain()
+
+  const logout = useCallback(() => {
+    disconnect()
+    setIsAuthenticated(false)
+  }, [])
 
   const { address = '', chainId } = account
   const isWalletConnected = !!account.address && account.isConnected
@@ -51,49 +66,74 @@ function AuthorizationProvider({ children }: AuthorizationProviderProps) {
   const { signSiweMessage } = useSiweAuth()
 
   const fetchBalances = useCallback(async () => {
-    getBalances()
-      .then(({ tokens }) => {
-        console.log('tokens: ', tokens)
+    setBalances(undefined)
 
-        setTokens(tokens)
-        setIsAuthenticated(true)
-      })
-      .catch(() => {
-        setIsAuthenticated(false)
-      })
-  }, [])
+    try {
+      const balances = await getBalances()
 
-  const signIn = useCallback(async () => {
-    if (!address || !chainId) {
-      throw 'TODO: implement frontend side errors!'
+      setBalances(balances)
+      setIsAuthenticated(true)
+    } catch {
+      // TODO: handle error si 401...
+      setIsAuthenticated(false)
+      setBalances(undefined)
+
+      // TODO: si el error es BadGatewayError o 502 => fallaron los endpoints de alchemy
     }
+  }, [switchChain])
 
-    const { nonce, nonceSigned } = await authEndpoints.getNonce(address)
+  const signIn = useCallback(
+    async (chainId: number) => {
+      if (!address || !chainId) {
+        throw 'TODO: implement frontend side errors!'
+      }
 
-    const { signature, siweMessage } = await signSiweMessage(address, nonce, chainId)
+      const { nonce, nonceSigned } = await authEndpoints.getNonce(address)
 
-    await authEndpoints.signIn({
-      siweMessageData: siweMessage,
-      signature,
-      nonceSigned
-    })
+      try {
+        const { signature, siweMessage } = await signSiweMessage(address, nonce, chainId)
 
-    await fetchBalances()
-  }, [address, signSiweMessage, chainId, fetchBalances])
+        await authEndpoints.signIn({
+          siweMessageData: siweMessage,
+          signature,
+          nonceSigned
+        })
+      } catch (error) {
+        // TODO: show sign in button again!!
+        console.log('SIGN IN FAILED! => ', error)
+      }
+    },
+    [address, signSiweMessage]
+  )
 
   // We check here if the user is autenticated or not
   useEffect(() => {
     if (isWalletConnected) {
       fetchBalances()
+      // TODO: set the correct chain if 200
     }
   }, [isWalletConnected, fetchBalances])
+
+  // switch chain => signIn => getBalances
+  useEffect(() => {
+    if (chainId) {
+      signIn(chainId).then(() => {
+        fetchBalances()
+      })
+    }
+  }, [chainId])
 
   const value = {
     isWalletConnected,
     isAuthenticated,
     address,
+    chainId,
+    switchChain,
     signIn,
-    tokens
+    logout,
+    isDisconnecting,
+    fetchBalances,
+    balances
   }
 
   return <authorizationContext.Provider value={value}>{children}</authorizationContext.Provider>

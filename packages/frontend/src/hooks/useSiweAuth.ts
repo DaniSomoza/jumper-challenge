@@ -14,7 +14,7 @@ function useSiweAuth() {
         statement: 'Sign in to Jumper Code Challenge.',
         uri: window.location.origin,
         version: '1',
-        chainId: chainId,
+        chainId,
         nonce,
         issuedAt: new Date().toISOString()
       })

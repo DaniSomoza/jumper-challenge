@@ -10,13 +10,14 @@ import '@rainbow-me/rainbowkit/styles.css'
 
 import { AuthorizationProvider, useAuthorization } from '../store/AuthorizationContext'
 import chains from '../chains/chains'
-import Balances from './balances/Balances'
+import BalanceList from './balances/BalanceList'
 import Header from './header/Header'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 
 function App() {
-  const { signIn, isWalletConnected, isAuthenticated, tokens } = useAuthorization()
+  const { chainId, signIn, isWalletConnected, isAuthenticated, balances, fetchBalances } =
+    useAuthorization()
 
   return (
     <>
@@ -38,7 +39,7 @@ function App() {
         ) : (
           <>
             {isAuthenticated ? (
-              <Balances tokens={tokens} />
+              <BalanceList balances={balances} />
             ) : (
               <Box
                 component="section"
@@ -48,7 +49,15 @@ function App() {
                 alignItems={'center'}
                 mt={5}
               >
-                <Button onClick={signIn} variant="contained">
+                <Button
+                  onClick={async () => {
+                    if (chainId) {
+                      await signIn(chainId)
+                      await fetchBalances()
+                    }
+                  }}
+                  variant="contained"
+                >
                   signIn
                 </Button>
               </Box>

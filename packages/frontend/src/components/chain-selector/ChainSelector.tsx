@@ -1,4 +1,3 @@
-import { useAccount, useChainId, useSwitchChain } from 'wagmi'
 import { styled } from '@mui/material/styles'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
@@ -6,38 +5,30 @@ import OutlinedInput from '@mui/material/OutlinedInput'
 import Select, { type SelectChangeEvent } from '@mui/material/Select'
 
 import chains from '../../chains/chains'
+import { useAuthorization } from '../../store/AuthorizationContext'
 
 function ChainSelector() {
-  const { switchChain, isPending } = useSwitchChain()
-
-  const chainId = useChainId()
-
-  const account = useAccount()
-
-  // TODO: isLoading?
+  const { chainId, switchChain, isWalletConnected } = useAuthorization()
 
   // TODO: create chain label component
 
-  // TODO: Incompatible chain detected!
+  // TODO: Incompatible chain detected in the wallet!
 
-  const handleChange = (event: SelectChangeEvent<number>) => {
+  const handleChange = async (event: SelectChangeEvent<number>) => {
     const chainId = Number(event.target.value)
 
-    // TODO: if user have a valid session => sign in again in this chain
-
-    if (switchChain && chainId) {
+    if (switchChain) {
       switchChain({ chainId })
     }
   }
 
+  if (!isWalletConnected || !chainId) {
+    return null
+  }
+
   return (
     <FormControl sx={{ ml: 2, minWidth: 120, textAlign: 'center' }}>
-      <Select
-        value={account.chainId || chainId}
-        onChange={handleChange}
-        disabled={isPending}
-        input={<CustomInput />}
-      >
+      <Select value={chainId} onChange={handleChange} input={<CustomInput />}>
         {chains.map((chain) => (
           <MenuItem key={chain.id} value={chain.id}>
             {chain.name}

@@ -1,19 +1,20 @@
+import { formatUnits } from 'viem'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
-
-import emptyTokenLogo from '/empty_token_placeholder.webp'
-import { type ERC20TokenBalance } from '../../http/balancesEndpoints'
 import Avatar from '@mui/material/Avatar'
 import CardContent from '@mui/material/CardContent'
-import { formatUnits } from 'viem'
 
-type BalancesProps = {
-  tokens: ERC20TokenBalance[]
+import emptyTokenLogo from '/empty_token_placeholder.webp'
+import { type Balances, type ERC20TokenBalance } from '../../http/balancesEndpoints'
+import Loader from '../loader/Loader'
+
+type BalanceListProps = {
+  balances?: Balances
 }
 
-function Balances({ tokens }: BalancesProps) {
+function BalanceList({ balances }: BalanceListProps) {
   // TODO: API call error hanlder
 
   // TODO: SHOW PROVIDER (ALCHEMY OR MORALIS)
@@ -21,6 +22,15 @@ function Balances({ tokens }: BalancesProps) {
   // TODO: call endpoint balances
 
   // TODO: implement custom address or chainId in the frontend
+
+  if (!balances) {
+    return <Loader isLoading />
+  }
+
+  // const { tokens, provider, address, chainId } = balances
+  const { tokens } = balances
+
+  // TODO: show provider, address, chainId
 
   return (
     <Box
@@ -56,7 +66,7 @@ function Balances({ tokens }: BalancesProps) {
   )
 }
 
-export default Balances
+export default BalanceList
 
 // TODO: create a helper in the frontend
 function formatAmount(amount: string, decimals: number, precision = 4) {
