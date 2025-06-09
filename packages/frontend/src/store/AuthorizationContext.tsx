@@ -1,24 +1,33 @@
-import { createContext, useCallback, useContext, useEffect, useState, type JSX } from 'react'
-import { useAccount } from 'wagmi'
+import { createContext, useCallback, useContext, useState, type JSX } from 'react'
+import { useAccount, useDisconnect, useSwitchChain } from 'wagmi'
+import type { Chain } from 'wagmi/chains'
 
 import authEndpoints from '../http/authEndpoints'
 import useSiweAuth from '../hooks/useSiweAuth'
-import { getBalances, type ERC20TokenBalance } from '../http/balancesEndpoints'
 
 const initialContextValue = {
   address: '',
-  isAuthenticated: false,
+  isAuthenticated: true,
+  setIsAuthenticated: () => {},
   isWalletConnected: false,
+  isDisconnecting: false,
+  isSwitchChainLoading: false,
   signIn: () => Promise.resolve(),
-  tokens: []
+  logout: () => {}
 }
 
 type authorizationContextValue = {
   address?: string
+  chainId?: number
+  chain?: Chain
   isAuthenticated: boolean
+  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>
   isWalletConnected: boolean
-  signIn: () => Promise<void>
-  tokens: ERC20TokenBalance[]
+  isDisconnecting: boolean
+  isSwitchChainLoading: boolean
+  switchChain?: ({ chainId }: { chainId: number }) => void
+  signIn: (chainId: number) => Promise<void>
+  logout: () => void
 }
 
 const authorizationContext = createContext<authorizationContextValue>(initialContextValue)
@@ -39,61 +48,63 @@ type AuthorizationProviderProps = {
 
 function AuthorizationProvider({ children }: AuthorizationProviderProps) {
   const account = useAccount()
-  const [tokens, setTokens] = useState<ERC20TokenBalance[]>([])
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true)
 
-  // TODO: isLoading state
-  // TODO: implement expire session and logout properly
+  const { disconnect, isPending: isDisconnecting } = useDisconnect()
+
+  const { switchChain, isPending: isSwitchChainLoading } = useSwitchChain()
+
+  // Note: For a complete logout, the session cookie should also be cleared on the server-side.
+  // Since httpOnly cookies cannot be accessed or deleted from the frontend (by design, for security),
+  // it's recommended to implement a /logout backend endpoint that clears the cookie.
+  const logout = useCallback(() => {
+    disconnect()
+    setIsAuthenticated(false)
+  }, [])
 
   const { address = '', chainId } = account
   const isWalletConnected = !!account.address && account.isConnected
 
   const { signSiweMessage } = useSiweAuth()
 
-  const fetchBalances = useCallback(async () => {
-    getBalances()
-      .then(({ tokens }) => {
-        console.log('tokens: ', tokens)
+  const signIn = useCallback(
+    async (chainId: number) => {
+      if (!address) {
+        return
+      }
 
-        setTokens(tokens)
+      const { nonce, nonceSigned } = await authEndpoints.getNonce(address)
+
+      try {
+        const { signature, siweMessage } = await signSiweMessage(address, nonce, chainId)
+
+        await authEndpoints.signIn({
+          siweMessageData: siweMessage,
+          signature,
+          nonceSigned
+        })
+
         setIsAuthenticated(true)
-      })
-      .catch(() => {
+      } catch (error) {
         setIsAuthenticated(false)
-      })
-  }, [])
-
-  const signIn = useCallback(async () => {
-    if (!address || !chainId) {
-      throw 'TODO: implement frontend side errors!'
-    }
-
-    const { nonce, nonceSigned } = await authEndpoints.getNonce(address)
-
-    const { signature, siweMessage } = await signSiweMessage(address, nonce, chainId)
-
-    await authEndpoints.signIn({
-      siweMessageData: siweMessage,
-      signature,
-      nonceSigned
-    })
-
-    await fetchBalances()
-  }, [address, signSiweMessage, chainId, fetchBalances])
-
-  // We check here if the user is autenticated or not
-  useEffect(() => {
-    if (isWalletConnected) {
-      fetchBalances()
-    }
-  }, [isWalletConnected, fetchBalances])
+        throw error
+      }
+    },
+    [address, signSiweMessage]
+  )
 
   const value = {
     isWalletConnected,
     isAuthenticated,
+    setIsAuthenticated,
+    isSwitchChainLoading,
     address,
+    chainId,
+    chain: account.chain,
+    switchChain,
     signIn,
-    tokens
+    logout,
+    isDisconnecting
   }
 
   return <authorizationContext.Provider value={value}>{children}</authorizationContext.Provider>

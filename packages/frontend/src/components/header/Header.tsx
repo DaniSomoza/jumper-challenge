@@ -1,14 +1,14 @@
-import { useAccount } from 'wagmi'
 import AppBar from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
 import Box from '@mui/material/Box'
 
 import jumperLogo from '/jumper.svg'
 import ChainSelector from '../chain-selector/ChainSelector'
+import { useAuthorization } from '../../store/AuthorizationContext'
+import ConnectedWallet from '../connected-wallet/ConnectedWallet'
 
 function Header() {
-  const account = useAccount()
-  const isWalletConnected = !!account.address && account.isConnected
+  const { address, isWalletConnected, logout, isDisconnecting, chain } = useAuthorization()
 
   return (
     <AppBar position="static">
@@ -17,8 +17,14 @@ function Header() {
           <img src={jumperLogo} className="logo" alt="Jumper logo" />
         </Box>
 
-        {/* TODO: create an AddressLabel component */}
-        {isWalletConnected && <div>{account.address}</div>}
+        {isWalletConnected && address && chain && (
+          <ConnectedWallet
+            address={address}
+            chain={chain}
+            logout={logout}
+            isDisconnecting={isDisconnecting}
+          />
+        )}
 
         <ChainSelector />
       </Toolbar>

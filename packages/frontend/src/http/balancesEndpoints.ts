@@ -2,7 +2,6 @@ import axios from 'axios'
 
 const backendOrigin = import.meta.env.VITE_BACKEND_ORIGIN
 
-// TODO: review this duplicity
 export type BalanceProvider = {
   name: string
   logo: string
