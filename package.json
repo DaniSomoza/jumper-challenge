@@ -8,6 +8,7 @@
   "license": "MIT",
   "scripts": {
     "test": "yarn workspaces run test",
+    "test:coverage": "yarn workspaces run test:coverage",
     "build": "yarn workspaces run build",
     "lint:check": "eslint \"packages/**/*.{ts,tsx}\" && prettier --check \"packages/**/*.{ts,tsx}\""
   },
