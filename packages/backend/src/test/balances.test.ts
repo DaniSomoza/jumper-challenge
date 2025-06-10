@@ -5,7 +5,7 @@ import { sepolia } from '../chains/chains'
 import * as alchemyProvider from '../features/erc20-token-balances/api-providers/alchemy'
 import * as moralisProvider from '../features/erc20-token-balances/api-providers/moralis'
 import authService from '../features/auth/authService'
-import { ERC20TokenBalance } from '../features/erc20-token-balances/BalancesTypes'
+import { ERC20TokenBalance } from '../types/balancesTypes'
 
 describe('balances', () => {
   describe('ERC20 balances endpoint', () => {
