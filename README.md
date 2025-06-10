@@ -1,5 +1,7 @@
 # Jumper Challenge - Fullstack Project
 
+[![Coverage Status](https://coveralls.io/repos/github/DaniSomoza/jumper-challenge/badge.svg)](https://coveralls.io/github/DaniSomoza/jumper-challenge)
+
 This project is a **monorepo** containing two packages:
 
 - **backend**
