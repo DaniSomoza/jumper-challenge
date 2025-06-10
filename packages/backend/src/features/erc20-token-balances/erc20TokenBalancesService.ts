@@ -8,22 +8,12 @@ import { getBalancesFromMoralis } from './api-providers/moralis'
 import BadGatewayError from '../../errors/BadGatewayError'
 import UnauthorizedError from '../../errors/UnauthorizedError'
 
-async function getBalances(customAddress?: string, customChainId?: string, sessionToken?: string) {
-  let address, chainId
-
-  if (!customAddress && !sessionToken) {
+async function getBalances(sessionToken?: string) {
+  if (!sessionToken) {
     throw new UnauthorizedError('Invalid session')
   }
 
-  if (sessionToken) {
-    const sessionPayload = authService.verifySession(sessionToken)
-
-    address = sessionPayload.address
-    chainId = sessionPayload.chainId
-  } else {
-    address = customAddress
-    chainId = customChainId
-  }
+  const { address, chainId } = authService.verifySession(sessionToken)
 
   if (!address) {
     throw new BadRequestError('Missing address')

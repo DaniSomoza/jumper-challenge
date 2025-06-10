@@ -9,6 +9,128 @@ import { ERC20TokenBalance } from '../types/balancesTypes'
 
 describe('balances', () => {
   describe('ERC20 balances endpoint', () => {
+    it('should return 401 if no session is present', async () => {
+      const spyGetBalancesFromAlchemy = jest.spyOn(alchemyProvider, 'getBalancesFromAlchemy')
+      const spyGetBalancesFromMoralis = jest.spyOn(moralisProvider, 'getBalancesFromMoralis')
+
+      expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
+      expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
+
+      const response = await testServer.server.inject({
+        method: 'GET',
+        url: `/balances?chainId=${sepolia.chainId}`
+      })
+
+      expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
+
+      // no provider called
+      expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
+      expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
+
+      const { error } = JSON.parse(response.payload)
+
+      expect(error).toEqual('Invalid session')
+    })
+
+    it('should return Unauthorized error if the session is invalid', async () => {
+      const spyGetBalancesFromAlchemy = jest.spyOn(alchemyProvider, 'getBalancesFromAlchemy')
+      const spyGetBalancesFromMoralis = jest.spyOn(moralisProvider, 'getBalancesFromMoralis')
+
+      expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
+      expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
+
+      const signedCookie = testServer.server.signCookie('invalidSessionToken')
+
+      const response = await testServer.server.inject({
+        method: 'GET',
+        url: '/balances',
+        headers: {
+          cookie: `session-cookie=${signedCookie}`
+        }
+      })
+
+      expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
+
+      // no provider called
+      expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
+      expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
+
+      const { error, details } = JSON.parse(response.payload)
+
+      expect(error).toEqual('Invalid session')
+      expect(details.sessionToken).toEqual('invalidSessionToken')
+    })
+
+    it('should return Unauthorized error if the cookie is invalid', async () => {
+      const spyGetBalancesFromAlchemy = jest.spyOn(alchemyProvider, 'getBalancesFromAlchemy')
+      const spyGetBalancesFromMoralis = jest.spyOn(moralisProvider, 'getBalancesFromMoralis')
+
+      expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
+      expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
+
+      const response = await testServer.server.inject({
+        method: 'GET',
+        url: '/balances',
+        headers: {
+          cookie: `session-cookie=INVALID_COOKIE`
+        }
+      })
+
+      expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
+
+      // no provider called
+      expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
+      expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
+
+      const { error, details } = JSON.parse(response.payload)
+
+      expect(error).toEqual('Invalid session')
+      expect(details.sessionToken).toEqual(null)
+    })
+
+    it('should return a 502 Bad Gateway error if all providers fail', async () => {
+      const address = '0x9E9FbDE7C7a83c43913BddC8779158F1368F0413'
+
+      const spyGetBalancesFromAlchemy = jest.spyOn(alchemyProvider, 'getBalancesFromAlchemy')
+      const spyGetBalancesFromMoralis = jest.spyOn(moralisProvider, 'getBalancesFromMoralis')
+
+      // Alchemy API failed
+      spyGetBalancesFromAlchemy.mockRejectedValueOnce(new Error('Alchemy API failed'))
+
+      // Moralis API failed
+      spyGetBalancesFromMoralis.mockRejectedValueOnce(new Error('Moralis API failed'))
+
+      expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
+      expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
+
+      // Mock verifySession
+      jest.spyOn(authService, 'verifySession').mockReturnValueOnce({
+        address,
+        chainId: sepolia.chainId.toString(),
+        jwtType: 'session'
+      })
+
+      const signedCookie = testServer.server.signCookie('validSessionToken')
+
+      const response = await testServer.server.inject({
+        method: 'GET',
+        url: '/balances',
+        headers: {
+          cookie: `session-cookie=${signedCookie}`
+        }
+      })
+
+      // both providers were called
+      expect(spyGetBalancesFromAlchemy).toHaveBeenCalledWith(address, sepolia)
+      expect(spyGetBalancesFromMoralis).toHaveBeenCalledWith(address, sepolia)
+
+      expect(response.statusCode).toEqual(StatusCodes.BAD_GATEWAY)
+
+      const { error } = JSON.parse(response.payload)
+
+      expect(error).toEqual('all providers (alchemy and moralis) failed')
+    })
+
     it('should call Alchemy provider and return ERC20 balances', async () => {
       const address = '0x9E9FbDE7C7a83c43913BddC8779158F1368F0413'
 
@@ -18,9 +140,21 @@ describe('balances', () => {
       expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
       expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
 
+      // Mock verifySession
+      jest.spyOn(authService, 'verifySession').mockReturnValueOnce({
+        address,
+        chainId: sepolia.chainId.toString(),
+        jwtType: 'session'
+      })
+
+      const signedCookie = testServer.server.signCookie('validSessionToken')
+
       const response = await testServer.server.inject({
         method: 'GET',
-        url: `/balances?address=${address}&chainId=${sepolia.chainId}`
+        url: '/balances',
+        headers: {
+          cookie: `session-cookie=${signedCookie}`
+        }
       })
 
       // only alchemy was called
@@ -46,7 +180,7 @@ describe('balances', () => {
       ).toBe(true)
     })
 
-    it('should call Morallis provider and return ERC20 balances', async () => {
+    it('should call Morallis provider if Alchemy fails and return ERC20 balances', async () => {
       const address = '0x9E9FbDE7C7a83c43913BddC8779158F1368F0413'
 
       const spyGetBalancesFromAlchemy = jest.spyOn(alchemyProvider, 'getBalancesFromAlchemy')
@@ -58,9 +192,21 @@ describe('balances', () => {
       expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
       expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
 
+      // Mock verifySession
+      jest.spyOn(authService, 'verifySession').mockReturnValueOnce({
+        address,
+        chainId: sepolia.chainId.toString(),
+        jwtType: 'session'
+      })
+
+      const signedCookie = testServer.server.signCookie('validSessionToken')
+
       const response = await testServer.server.inject({
         method: 'GET',
-        url: `/balances?address=${address}&chainId=${sepolia.chainId}`
+        url: '/balances',
+        headers: {
+          cookie: `session-cookie=${signedCookie}`
+        }
       })
 
       // both providers were called
@@ -86,7 +232,7 @@ describe('balances', () => {
       ).toBe(true)
     })
 
-    it('should use the session token if present', async () => {
+    it('should verify the session token if present', async () => {
       const address = '0x9E9FbDE7C7a83c43913BddC8779158F1368F0413'
 
       const spyGetBalancesFromAlchemy = jest.spyOn(alchemyProvider, 'getBalancesFromAlchemy')
@@ -135,45 +281,23 @@ describe('balances', () => {
       ).toBe(true)
     })
 
-    it('should return a Bad Gateway error if all providers fail', async () => {
-      const address = '0x9E9FbDE7C7a83c43913BddC8779158F1368F0413'
+    it('should return 400 if the address is invalid', async () => {
+      const address = 'Invalid_address'
 
       const spyGetBalancesFromAlchemy = jest.spyOn(alchemyProvider, 'getBalancesFromAlchemy')
       const spyGetBalancesFromMoralis = jest.spyOn(moralisProvider, 'getBalancesFromMoralis')
 
-      // Alchemy API failed
-      spyGetBalancesFromAlchemy.mockRejectedValueOnce(new Error('Alchemy API failed'))
-
-      // Moralis API failed
-      spyGetBalancesFromMoralis.mockRejectedValueOnce(new Error('Moralis API failed'))
-
       expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
       expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
 
-      const response = await testServer.server.inject({
-        method: 'GET',
-        url: `/balances?address=${address}&chainId=${sepolia.chainId}`
+      // Mock verifySession
+      jest.spyOn(authService, 'verifySession').mockReturnValueOnce({
+        address,
+        chainId: sepolia.chainId.toString(),
+        jwtType: 'session'
       })
 
-      // both providers were called
-      expect(spyGetBalancesFromAlchemy).toHaveBeenCalledWith(address, sepolia)
-      expect(spyGetBalancesFromMoralis).toHaveBeenCalledWith(address, sepolia)
-
-      expect(response.statusCode).toEqual(StatusCodes.BAD_GATEWAY)
-
-      const { error } = JSON.parse(response.payload)
-
-      expect(error).toEqual('all providers (alchemy and moralis) failed')
-    })
-
-    it('should return Unauthorized error if the session is invalid', async () => {
-      const spyGetBalancesFromAlchemy = jest.spyOn(alchemyProvider, 'getBalancesFromAlchemy')
-      const spyGetBalancesFromMoralis = jest.spyOn(moralisProvider, 'getBalancesFromMoralis')
-
-      expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
-      expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
-
-      const signedCookie = testServer.server.signCookie('invalidSessionToken')
+      const signedCookie = testServer.server.signCookie('validSessionToken')
 
       const response = await testServer.server.inject({
         method: 'GET',
@@ -181,32 +305,6 @@ describe('balances', () => {
         headers: {
           cookie: `session-cookie=${signedCookie}`
         }
-      })
-
-      expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
-
-      // no provider called
-      expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
-      expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
-
-      const { error, details } = JSON.parse(response.payload)
-
-      expect(error).toEqual('Invalid session')
-      expect(details.sessionToken).toEqual('invalidSessionToken')
-    })
-
-    it('should return 400 if the address is invalid', async () => {
-      const address = 'invalid_address'
-
-      const spyGetBalancesFromAlchemy = jest.spyOn(alchemyProvider, 'getBalancesFromAlchemy')
-      const spyGetBalancesFromMoralis = jest.spyOn(moralisProvider, 'getBalancesFromMoralis')
-
-      expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
-      expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
-
-      const response = await testServer.server.inject({
-        method: 'GET',
-        url: `/balances?address=${address}&chainId=${sepolia.chainId}`
       })
 
       expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
@@ -221,27 +319,42 @@ describe('balances', () => {
       expect(details.address).toEqual(address)
     })
 
-    it('should return 401 if the address is missing and no session token is present', async () => {
+    it('should return 400 if the address is missing', async () => {
+      const address = ''
+
       const spyGetBalancesFromAlchemy = jest.spyOn(alchemyProvider, 'getBalancesFromAlchemy')
       const spyGetBalancesFromMoralis = jest.spyOn(moralisProvider, 'getBalancesFromMoralis')
 
       expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
       expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
 
-      const response = await testServer.server.inject({
-        method: 'GET',
-        url: `/balances?chainId=${sepolia.chainId}`
+      // Mock verifySession
+      jest.spyOn(authService, 'verifySession').mockReturnValueOnce({
+        address,
+        chainId: sepolia.chainId.toString(),
+        jwtType: 'session'
       })
 
-      expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
+      const signedCookie = testServer.server.signCookie('validSessionToken')
+
+      const response = await testServer.server.inject({
+        method: 'GET',
+        url: '/balances',
+        headers: {
+          cookie: `session-cookie=${signedCookie}`
+        }
+      })
+
+      expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
 
       // no provider called
       expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
       expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
 
-      const { error } = JSON.parse(response.payload)
+      const { error, details } = JSON.parse(response.payload)
 
-      expect(error).toEqual('Invalid session')
+      expect(error).toEqual('Missing address')
+      expect(details.address).toEqual(undefined)
     })
 
     it('should return 400 if the chain is invalid', async () => {
@@ -254,9 +367,21 @@ describe('balances', () => {
       expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
       expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
 
+      // Mock verifySession
+      jest.spyOn(authService, 'verifySession').mockReturnValueOnce({
+        address,
+        chainId,
+        jwtType: 'session'
+      })
+
+      const signedCookie = testServer.server.signCookie('validSessionToken')
+
       const response = await testServer.server.inject({
         method: 'GET',
-        url: `/balances?address=${address}&chainId=${chainId}`
+        url: '/balances',
+        headers: {
+          cookie: `session-cookie=${signedCookie}`
+        }
       })
 
       expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
@@ -279,10 +404,21 @@ describe('balances', () => {
 
       expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
       expect(spyGetBalancesFromMoralis).not.toHaveBeenCalled()
+      // Mock verifySession
+      jest.spyOn(authService, 'verifySession').mockReturnValueOnce({
+        address,
+        chainId: '',
+        jwtType: 'session'
+      })
+
+      const signedCookie = testServer.server.signCookie('validSessionToken')
 
       const response = await testServer.server.inject({
         method: 'GET',
-        url: `/balances?address=${address}`
+        url: '/balances',
+        headers: {
+          cookie: `session-cookie=${signedCookie}`
+        }
       })
 
       expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)

@@ -7,23 +7,19 @@ import UnauthorizedError from '../../errors/UnauthorizedError'
 
 async function getBalances(request: FastifyRequest, response: FastifyReply) {
   try {
-    const { address, chainId } = request.query as { address: string; chainId: string }
-
     const sessionCookie = request.cookies['session-cookie']
 
-    if (sessionCookie) {
-      const { value: sessionToken, valid } = request.unsignCookie(sessionCookie)
-
-      if (!valid || !sessionToken) {
-        throw new UnauthorizedError('Invalid session', { sessionToken })
-      }
-
-      const balances = await erc20TokenBalancesService.getBalances(address, chainId, sessionToken)
-
-      return response.code(StatusCodes.OK).send(balances)
+    if (!sessionCookie) {
+      throw new UnauthorizedError('Invalid session')
     }
 
-    const balances = await erc20TokenBalancesService.getBalances(address, chainId)
+    const { value: sessionToken, valid } = request.unsignCookie(sessionCookie)
+
+    if (!valid || !sessionToken) {
+      throw new UnauthorizedError('Invalid session', { sessionToken })
+    }
+
+    const balances = await erc20TokenBalancesService.getBalances(sessionToken)
 
     return response.code(StatusCodes.OK).send(balances)
   } catch (error) {
