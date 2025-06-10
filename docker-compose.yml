@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   frontend:
     build:
@@ -18,6 +16,8 @@ services:
       - '${BACKEND_PORT}:4000'
     env_file:
       - .env
+    environment:
+      MONGO_HOST: mongo
     depends_on:
       - mongo
 

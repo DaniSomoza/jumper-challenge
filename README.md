@@ -39,8 +39,7 @@ yarn install
 You can run everything using Docker Compose:
 
 ```bash
-docker-compose build
-docker-compose up
+docker-compose up --build
 ```
 
 - The frontend will run at: [http://localhost:3000/](http://localhost:3000/)
@@ -60,10 +59,22 @@ yarn workspace frontend dev
 #### Backend
 
 ```bash
+docker-compose up mongo
+
 yarn workspace backend dev
 ```
 
 - The backend will run at: [http://localhost:4000/](http://localhost:4000/)
+
+#### Database
+
+Running only MongoDB (for local development):
+
+```bash
+docker-compose up mongo
+```
+
+- The Mongo database will run at: [http://localhost:27017/](http://localhost:27017/)
 
 ### Running tests
 
