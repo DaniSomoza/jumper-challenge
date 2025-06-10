@@ -44,7 +44,7 @@ export async function getBalancesFromMoralis(address: string, chain: Chain): Pro
     address: tokenBalance.token_address,
     balance: tokenBalance.balance,
     name: tokenBalance.name,
-    logo: tokenBalance.balance,
+    logo: tokenBalance.logo || '',
     symbol: tokenBalance.symbol,
     decimals: tokenBalance.decimals,
     isSpamToken: tokenBalance.possible_spam

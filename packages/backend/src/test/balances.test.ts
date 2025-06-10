@@ -221,7 +221,7 @@ describe('balances', () => {
       expect(details.address).toEqual(address)
     })
 
-    it('should return 400 if the address is missing', async () => {
+    it('should return 401 if the address is missing and no session token is present', async () => {
       const spyGetBalancesFromAlchemy = jest.spyOn(alchemyProvider, 'getBalancesFromAlchemy')
       const spyGetBalancesFromMoralis = jest.spyOn(moralisProvider, 'getBalancesFromMoralis')
 
@@ -233,7 +233,7 @@ describe('balances', () => {
         url: `/balances?chainId=${sepolia.chainId}`
       })
 
-      expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
+      expect(response.statusCode).toEqual(StatusCodes.UNAUTHORIZED)
 
       // no provider called
       expect(spyGetBalancesFromAlchemy).not.toHaveBeenCalled()
@@ -241,7 +241,7 @@ describe('balances', () => {
 
       const { error } = JSON.parse(response.payload)
 
-      expect(error).toEqual('Missing address')
+      expect(error).toEqual('Invalid session')
     })
 
     it('should return 400 if the chain is invalid', async () => {
