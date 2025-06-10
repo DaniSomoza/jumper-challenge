@@ -4,11 +4,11 @@ import Link from '@mui/material/Link'
 
 type AddressLabelProps = {
   address: string
-  chain: Chain
+  chain?: Chain
 }
 
 function AddressLabel({ address, chain }: AddressLabelProps) {
-  const blockExplorer = chain.blockExplorers?.default
+  const blockExplorer = chain?.blockExplorers?.default
 
   const link = `${blockExplorer?.url}/address/${address}`
 
