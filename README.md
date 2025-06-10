@@ -32,7 +32,20 @@ yarn install
 
 ### Running the project
 
-You can run both frontend and backend separately using Yarn workspaces.
+#### Using Docker:
+
+You can run everything using Docker Compose:
+
+```bash
+docker-compose build
+docker-compose up
+```
+
+- The frontend will run at: [http://localhost:3000/](http://localhost:3000/)
+- The backend will run at: [http://localhost:4000/](http://localhost:4000/)
+- The MongoDB will run at: [http://localhost:27017/](http://localhost:27017/)
+
+You can run both frontend and backend separately using Yarn workspaces:
 
 #### Frontend
 
@@ -50,15 +63,6 @@ yarn workspace backend dev
 
 - The backend will run at: [http://localhost:4000/](http://localhost:4000/)
 
-#### Alternatively, using Docker:
-
-You can also run everything using Docker Compose:
-
-```bash
-docker-compose build
-docker-compose up
-```
-
 ### Running tests
 
 You can run tests for both frontend and backend:
@@ -75,7 +79,7 @@ The backend is written in **Node.js** using **Fastify**.
 
 ### Endpoints
 
-Currently, there are 3 main endpoints implemented:
+Currently, there are 4 main endpoints implemented:
 
 - **`GET /auth/nonce/:address`**
   Returns a nonce signed by the backend for the provided address. This nonce must be included in the SIWE message that the frontend will later sign.
@@ -88,17 +92,30 @@ Currently, there are 3 main endpoints implemented:
   Returns the ERC20 balances for a connected user.
   The backend uses **Alchemy** as primary provider, and automatically falls back to **Moralis** if Alchemy fails.
 
+- **`GET /leaderboard`**
+  This project includes a login-based leaderboard system that tracks and ranks users by assigning points each time they log in. The point attribution depends on the type of network used.
+
+  Users receive points based on the network they log in from:
+
+  - Mainnet: 3 points
+  - L2 networks: 2 points
+  - Testnets (e.g., Sepolia): 1 point
+
 ### Architecture
 
 The backend follows a layered architecture:
 
 - **Controller Layer:** Handles HTTP requests and responses. It only communicates with the service layer.
 - **Service Layer:** Contains the business logic of the application. Completely decoupled from HTTP concerns.
-- Each layer is fully separated and has its own responsibility.
+- **Repository Layer:** Abstracts all interactions with the persistence system (MongoDB in my case). It provides a clean interface for data access, encapsulating the Mongoose implementation and making the service layer agnostic of the underlying storage technology.
+
+Each layer is fully separated and has its own responsibility.
 
 ### Tests
 
-- The backend contains full integration tests with very high test coverage.
+The backend contains full integration tests with very high test coverage.
+
+The database is mocked using mongodb-memory-server to allow fast, isolated, and realistic tests without depending on a real MongoDB instance.
 
 ---
 

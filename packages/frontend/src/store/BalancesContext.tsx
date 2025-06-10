@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, type JSX } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { getBalances, type Balances } from '../http/balancesEndpoints'
 import { useAuthorization } from './AuthorizationContext'
@@ -43,6 +43,8 @@ type BalancesProviderProps = {
 function BalancesProvider({ children }: BalancesProviderProps) {
   const { setIsAuthenticated, isAuthenticated, chainId, signIn } = useAuthorization()
 
+  const queryClient = useQueryClient()
+
   const {
     data: balances,
     refetch,
@@ -81,6 +83,9 @@ function BalancesProvider({ children }: BalancesProviderProps) {
       previousChainId.current !== undefined && previousChainId.current !== chainId
 
     if (chainHasChanged && chainId) {
+      queryClient.removeQueries({ queryKey: ['balances'] })
+      queryClient.removeQueries({ queryKey: ['leaderboard'] })
+
       signIn(chainId).then(() => {
         refetch()
       })

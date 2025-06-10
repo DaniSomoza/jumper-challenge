@@ -5,17 +5,18 @@ import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import Container from '@mui/material/Container'
 import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import Alert from '@mui/material/Alert'
 
 import '@rainbow-me/rainbowkit/styles.css'
 
 import { AuthorizationProvider, useAuthorization } from '../store/AuthorizationContext'
-import chains from '../chains/chains'
-import BalanceList from './balances/BalanceList'
-import Header from './header/Header'
-import Typography from '@mui/material/Typography'
-import Button from '@mui/material/Button'
 import { BalancesProvider, useBalances } from '../store/BalancesContext'
-import Alert from '@mui/material/Alert'
+import chains from '../chains/chains'
+import Header from './header/Header'
+import BalanceList from './balances/BalanceList'
+import Leaderboard from './leaderboard/Leaderboard'
 
 function App() {
   const { chainId, signIn, isWalletConnected, isAuthenticated } = useAuthorization()
@@ -32,7 +33,18 @@ function App() {
 
       <Container maxWidth="lg" component="main">
         <Box display={'flex'} justifyContent={'center'} mt={5}>
-          <Typography component={'h1'} variant="h4">
+          <Typography
+            component={'h1'}
+            variant="h4"
+            color="primary"
+            textAlign={'center'}
+            sx={{
+              background: 'linear-gradient(90deg, #8B5CF6, #38BDF8)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              fontWeight: 700
+            }}
+          >
             Jumper Code challenge
           </Typography>
         </Box>
@@ -50,13 +62,17 @@ function App() {
         ) : (
           <>
             {isAuthenticated ? (
-              <BalanceList
-                balances={balances}
-                isLoading={isBalancesLoading}
-                isBalancesError={isBalancesError}
-                isBalancesFetching={isBalancesFetching}
-                error={error}
-              />
+              <>
+                <BalanceList
+                  balances={balances}
+                  isLoading={isBalancesLoading}
+                  isBalancesError={isBalancesError}
+                  isBalancesFetching={isBalancesFetching}
+                  error={error}
+                />
+
+                <Leaderboard />
+              </>
             ) : (
               <Box
                 component="section"
@@ -95,7 +111,13 @@ const queryClient = new QueryClient()
 
 const darkTheme = createTheme({
   palette: {
-    mode: 'dark'
+    mode: 'dark',
+    primary: {
+      main: '#8B5CF6' // Violet
+    },
+    secondary: {
+      main: '#38BDF8' // Sky Blue
+    }
   }
 })
 

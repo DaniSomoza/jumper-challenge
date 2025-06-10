@@ -2,6 +2,7 @@ import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
 import Grid from '@mui/material/Grid'
+import Skeleton from '@mui/material/Skeleton'
 
 import { type Balances } from '../../http/balancesEndpoints'
 import Loader from '../loader/Loader'
@@ -35,11 +36,15 @@ function BalanceList({ balances, isLoading, isBalancesFetching, error }: Balance
         Balances
       </Typography>
 
-      {!showLoader && (
-        <Typography mt={1} variant="caption">
-          Your ERC20 Tokens in {chain?.name} via {balances?.provider.name}
-        </Typography>
-      )}
+      <Box paddingBottom={1}>
+        {showLoader ? (
+          <Skeleton variant="rectangular" width={210} height={16} />
+        ) : (
+          <Typography mt={1} variant="caption">
+            Your ERC20 Tokens in {chain?.name} via {balances?.provider.name}
+          </Typography>
+        )}
+      </Box>
 
       <Paper variant="outlined">
         <Grid
@@ -56,7 +61,9 @@ function BalanceList({ balances, isLoading, isBalancesFetching, error }: Balance
           ) : (
             <>
               {error ? (
-                <div>Show error: {getErrorLabel(error)}</div>
+                <Typography mt={1} variant="caption">
+                  {getErrorLabel(error)}
+                </Typography>
               ) : (
                 <>
                   {balances?.tokens.length === 0 ? (
