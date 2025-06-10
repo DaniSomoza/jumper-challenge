@@ -77,17 +77,17 @@ function BalancesProvider({ children }: BalancesProviderProps) {
 
   const previousChainId = useRef<number | undefined>(undefined)
 
-  // switch chain => signIn => getBalances
+  // on switch chain => signIn => getBalances
   useEffect(() => {
     const chainHasChanged =
       previousChainId.current !== undefined && previousChainId.current !== chainId
 
     if (chainHasChanged && chainId) {
-      queryClient.removeQueries({ queryKey: ['balances'] })
-      queryClient.removeQueries({ queryKey: ['leaderboard'] })
-
       signIn(chainId).then(() => {
-        refetch()
+        // clean old data
+        queryClient.removeQueries({ queryKey: ['balances'] })
+        queryClient.removeQueries({ queryKey: ['leaderboard'] })
+        refetch() // call /balances again
       })
     }
 
