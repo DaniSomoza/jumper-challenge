@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import { BalanceProvider, Balances, ERC20TokenBalance } from '../BalancesTypes'
+import { BalanceProvider, Balances, ERC20TokenBalance } from '../../../types/balancesTypes'
 import { Chain } from '../../../chains/chains'
 import { alchemyApiKey } from '../../../constants'
 

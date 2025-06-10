@@ -2,7 +2,7 @@ import axios from 'axios'
 
 import { Chain } from '../../../chains/chains'
 import { moralisApiKey } from '../../../constants'
-import { BalanceProvider, Balances, ERC20TokenBalance } from '../BalancesTypes'
+import { BalanceProvider, Balances, ERC20TokenBalance } from '../../../types/balancesTypes'
 
 type MoralisBalances = {
   token_address: string

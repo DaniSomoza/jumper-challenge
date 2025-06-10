@@ -8,9 +8,12 @@ import { NONCE_EXPIRATION_TIME, SESSION_EXPIRATION_TIME } from '../../constants'
 import UnauthorizedError from '../../errors/UnauthorizedError'
 import BadRequestError from '../../errors/BadRequestError'
 import leaderboardService from '../leaderboard/leaderBoardService'
-
-type jwtNoncePayload = { nonce: string; address: string; jwtType: 'nonce' }
-type jwtSessionPayload = { address: string; chainId: string; jwtType: 'session' }
+import {
+  jwtNoncePayload,
+  jwtSessionPayload,
+  signInData,
+  SiweMessageData
+} from '../../types/authTypes'
 
 async function getNonce(address: string) {
   if (!isAddress(address)) {
@@ -27,18 +30,6 @@ async function getNonce(address: string) {
     nonce,
     nonceSigned
   }
-}
-
-// TODO: create types file
-export type SiweMessageData = Pick<
-  SiweMessage,
-  'address' | 'chainId' | 'domain' | 'nonce' | 'issuedAt' | 'uri' | 'version'
->
-
-export type signInData = {
-  siweMessageData: SiweMessageData
-  signature: string
-  nonceSigned: string
 }
 
 async function signIn({ siweMessageData, signature, nonceSigned }: signInData) {
