@@ -15,7 +15,7 @@ export type ERC20TokenBalance = {
   address: string
   balance: string
   name: string
-  logo: string
+  logo?: string
   symbol: string
   decimals: number
   isSpamToken: boolean

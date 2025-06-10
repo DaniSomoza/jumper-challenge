@@ -6,9 +6,14 @@ import chains from '../../chains/chains'
 import { getBalancesFromAlchemy } from './api-providers/alchemy'
 import { getBalancesFromMoralis } from './api-providers/moralis'
 import BadGatewayError from '../../errors/BadGatewayError'
+import UnauthorizedError from '../../errors/UnauthorizedError'
 
 async function getBalances(customAddress?: string, customChainId?: string, sessionToken?: string) {
   let address, chainId
+
+  if (!customAddress && !sessionToken) {
+    throw new UnauthorizedError('Invalid session')
+  }
 
   if (sessionToken) {
     const sessionPayload = authService.verifySession(sessionToken)
