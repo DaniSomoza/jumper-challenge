@@ -1,5 +1,7 @@
 # Jumper Challenge - Fullstack Project
 
+[![Coverage Status](https://coveralls.io/repos/github/DaniSomoza/jumper-challenge/badge.svg)](https://coveralls.io/github/DaniSomoza/jumper-challenge)
+
 This project is a **monorepo** containing two packages:
 
 - **backend**
@@ -71,6 +73,12 @@ You can run tests for both frontend and backend:
 yarn test
 ```
 
+Coverage for both frontend and backend:
+
+```bash
+yarn test:coverage
+```
+
 ---
 
 ## Backend
@@ -84,9 +92,7 @@ Currently, there are 4 main endpoints implemented:
 - **`GET /auth/nonce/:address`**
   Returns a nonce signed by the backend for the provided address. This nonce must be included in the SIWE message that the frontend will later sign.
 
-- **`POST /auth/session`**\*\* (Sign In)\*\*
-  Validates that both the nonce and the signature are correct.
-  If valid, it creates a session by issuing a JWT token that is returned inside a secure HTTP-only cookie. The authentication system is **stateless** — the backend does not need to store any user info.
+- **`POST /auth/session`** (Sign In): Validates that both the nonce and the signature are correct. If valid, it creates a session by issuing a JWT token that is returned inside a secure HTTP-only cookie. The authentication system is **stateless** — the backend does not need to store any user info.
 
 - **`GET /balances`**
   Returns the ERC20 balances for a connected user.
@@ -131,6 +137,7 @@ The frontend is built with **Vite**, using **React** and **TypeScript**.
 - **Tanstack React Query:** for query caching and loading/error states (in some flows).
 - **Wagmi + RainbowKit:** to handle wallet connections and signing.
 - **siwe package:** used to generate the SIWE message that the user signs for authentication.
+- **vitests:** used to test components.
 
 ### UI Note
 
@@ -145,7 +152,9 @@ This project includes:
 - A complete fullstack authentication flow using **Sign-In With Ethereum (SIWE)**.
 - Secure backend authentication using stateless JWT sessions stored in cookies.
 - ERC20 token balances fetching with multiple data providers.
+- Leaderboard bonus feature.
 - Full test coverage in the backend.
-- Functional and clean frontend architecture.
+- tests in the frontend.
+- Functional and clean frontend and backend architecture.
 
 ---

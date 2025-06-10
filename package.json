@@ -8,6 +8,9 @@
   "license": "MIT",
   "scripts": {
     "test": "yarn workspaces run test",
+    "test:coverage": "yarn workspaces run test:coverage",
+    "precoverage": "yarn workspace backend run test:coverage && yarn workspace frontend run test:coverage && nyc merge packages/backend/coverage coverage-temp/backend.json && nyc merge packages/frontend/coverage coverage-temp/frontend.json",
+    "coverage": "nyc report --temp-directory coverage-temp",
     "build": "yarn workspaces run build",
     "lint:check": "eslint \"packages/**/*.{ts,tsx}\" && prettier --check \"packages/**/*.{ts,tsx}\""
   },
@@ -25,6 +28,19 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "lint-staged": "^15.2.10",
+    "nyc": "^17.1.0",
     "prettier": "^3.3.3"
+  },
+    "nyc": {
+    "report-dir": "./coverage",
+    "include": [
+      "packages/**"
+    ],
+    "exclude": [
+      "**/*.test.ts"
+    ],
+    "reporter": [
+      "lcov"
+    ]
   }
 }

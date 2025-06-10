@@ -27,6 +27,8 @@ lerna-debug.log*
 
 # testing
 **/coverage
+**/temp-director
+**/coverage-temp
 
 # production
 **/build
