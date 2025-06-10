@@ -19,12 +19,12 @@ function ConnectedWallet({ address, logout, chain, isDisconnecting }: ConnectedW
     <Paper variant={'outlined'} sx={{ padding: 0.5 }}>
       <Tooltip title={address} arrow>
         <Stack direction={'row'} alignItems={'center'} spacing={1}>
-          <AccountBalanceWalletIcon fontSize="small" />
+          <AccountBalanceWalletIcon fontSize="small" color="primary" />
 
           <AddressLabel address={address} chain={chain} />
 
           <Tooltip title="Disconnect Wallet" arrow placement="right">
-            <IconButton onClick={logout} loading={isDisconnecting} size="small">
+            <IconButton onClick={logout} loading={isDisconnecting} size="small" color="primary">
               <LogoutRoundedIcon fontSize="small" />
             </IconButton>
           </Tooltip>

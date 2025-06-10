@@ -7,6 +7,7 @@ import { createNonce } from '../../lib/nonce'
 import { NONCE_EXPIRATION_TIME, SESSION_EXPIRATION_TIME } from '../../constants'
 import UnauthorizedError from '../../errors/UnauthorizedError'
 import BadRequestError from '../../errors/BadRequestError'
+import leaderboardService from '../leaderboard/leaderBoardService'
 
 type jwtNoncePayload = { nonce: string; address: string; jwtType: 'nonce' }
 type jwtSessionPayload = { address: string; chainId: string; jwtType: 'session' }
@@ -77,12 +78,17 @@ async function signIn({ siweMessageData, signature, nonceSigned }: signInData) {
     })
   }
 
+  const chainId = siweMessageData.chainId
+
   const jwtSessionPayload: jwtSessionPayload = {
     address,
-    chainId: siweMessageData.chainId.toString(),
+    chainId: chainId.toString(),
     jwtType: 'session'
   }
+
   const sessionToken = createJWT(jwtSessionPayload, SESSION_EXPIRATION_TIME)
+
+  await leaderboardService.savePoints(address, chainId)
 
   return {
     sessionToken

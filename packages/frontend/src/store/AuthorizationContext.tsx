@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useState, type JSX } from 'react'
 import { useAccount, useDisconnect, useSwitchChain } from 'wagmi'
 import type { Chain } from 'wagmi/chains'
+import { useQueryClient } from '@tanstack/react-query'
 
 import authEndpoints from '../http/authEndpoints'
 import useSiweAuth from '../hooks/useSiweAuth'
@@ -54,13 +55,19 @@ function AuthorizationProvider({ children }: AuthorizationProviderProps) {
 
   const { switchChain, isPending: isSwitchChainLoading } = useSwitchChain()
 
+  const queryClient = useQueryClient()
+
   // Note: For a complete logout, the session cookie should also be cleared on the server-side.
   // Since httpOnly cookies cannot be accessed or deleted from the frontend (by design, for security),
   // it's recommended to implement a /logout backend endpoint that clears the cookie.
   const logout = useCallback(() => {
     disconnect()
     setIsAuthenticated(false)
-  }, [])
+
+    // clean cache
+    queryClient.removeQueries({ queryKey: ['balances'] })
+    queryClient.removeQueries({ queryKey: ['leaderboard'] })
+  }, [queryClient])
 
   const { address = '', chainId } = account
   const isWalletConnected = !!account.address && account.isConnected
