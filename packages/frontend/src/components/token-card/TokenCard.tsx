@@ -35,7 +35,16 @@ function TokenCard({ token, chain }: TokenCardProps) {
       </Box>
 
       <CardContent>
-        <Typography variant="h6" align="center">
+        <Typography
+          variant="h6"
+          align="center"
+          noWrap
+          sx={{
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap'
+          }}
+        >
           {token.name || 'ERC20 Token'}
         </Typography>
 
