@@ -31,4 +31,10 @@ describe('AddressLabel', () => {
 
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
+
+  it('should not render a link when no chain is provided', () => {
+    render(<AddressLabel address={address} />)
+
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+  })
 })
